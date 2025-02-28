@@ -1,0 +1,45 @@
+
+docker_builder:build:job:
+  script:
+    - >
+      echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}"
+      > /kaniko/.docker/config.json
+    - cat /kaniko/.docker/config.json
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --no-push
+      --skip-tls-verify
+      --tar-path image.tar
+      --cache=true --cache-repo="${CI_REGISTRY_IMAGE}/cache"
+  artifacts:
+    paths:
+      - image.tar
+  tags:
+    - docker-builder
+  rules:
+    - when: always
+
+docker_builder:push:job:
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
+    entrypoint: [""]
+  variables:
+    IMAGE_TAG: "${CI_COMMIT_BRANCH}"
+  script:
+    - ls -all image.tar
+    - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY --insecure
+    - crane push image.tar ${CI_REGISTRY_IMAGE}:$IMAGE_TAG --insecure
+  needs:
+    - docker_builder:build:job
+  tags:
+    - docker-builder
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED == "true" # can use trigger variables for evaluation
+      variables:
+        IMAGE_TAG: "latest"
+    - if: $CI_COMMIT_BRANCH == "main" # can use trigger variables for evaluation
+      variables:
+        IMAGE_TAG: "latest"
+    - when: always
