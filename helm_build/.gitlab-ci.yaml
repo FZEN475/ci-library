@@ -1,0 +1,95 @@
+.template-variables: &template-variables
+  variables:
+    CHANNEL: release
+    KUBE_CONTEXT: dev/kubernetes-agent-config:kubernetes-agent-prod
+
+.template-rules: &template-rules
+  if: $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_REF_PROTECTED == "true"
+  <<: *template-variables
+
+helm_builder:test:config:job:
+  stage: test
+  variables:
+    KUBE_CONTEXT: dev/kubernetes-agent-config:kubernetes-agent-dev
+  image:
+    name: alpine/helm
+    entrypoint: [ "" ]
+  script:
+    - helm dependency build ./chart/ --debug
+    - helm template ./chart/ --debug > config.yaml
+    - helm lint ./chart/
+    - helm lint ./chart/charts/*/ || true
+  artifacts:
+    paths:
+      - config.yaml
+  tags:
+    - helm
+  rules:
+    - when: always
+
+helm_builder:test:deploy:job:
+  stage: test
+  variables:
+    KUBE_CONTEXT: dev/kubernetes-agent-config:kubernetes-agent-dev
+  image:
+    name: alpine/helm
+    entrypoint: [ "" ]
+  script:
+    - |
+      helm install ${CI_PROJECT_NAME}-${CI_PIPELINE_ID} ./chart \
+      -n dev \
+      -f ./chart/values.yaml \
+      --set host=${CI_PROJECT_NAME}-${CI_PIPELINE_ID}.fzen.pro \
+      --dry-run=server \
+      --wait --kubeconfig=$KUBECONFIG --kube-context=$KUBE_CONTEXT
+  tags:
+    - helm
+  rules:
+    - when: always
+
+
+helm_builder:build:job:
+  stage: test
+  image:
+    name: alpine/helm
+    entrypoint: [ "" ]
+  script:
+    - find ./chart -type f -regex '.*\(Chart.ya\?ml\|requirements.ya\?ml\)' -exec sh -c 'helm dependency build $(dirname "{}") ' \;
+    - rm -rf ./packages && mkdir -p ./packages
+    - |
+      echo "[PACKAGING CHART $chart]"
+      helm package ./chart -d ./packages
+  artifacts:
+    paths:
+      - packages
+  tags:
+    - helm
+  rules:
+    - when: on_success
+  needs:
+    - job: 'helm_builder:test:config:job'
+    - job: 'helm_builder:test:deploy:job'
+      optional: true
+
+helm_builder:push:job:
+  stage: deploy
+  variables:
+    CHANNEL: "${CI_COMMIT_BRANCH}"
+  image:
+    name: alpine/helm
+    entrypoint: [ "" ]
+  script:
+    - |
+      find ./packages -mindepth 1 -maxdepth 1 -type f -name '*.tgz' -exec sh -c 'basename "$0"' '{}' \; | while read package; do
+        CHART_NAME=$(echo $package | sed -e 's/-[0-9]\.[0-9]\.[0-9]\.tgz$//g')
+        CHART_VERSION=$(echo $package | sed -e 's/^[a-zA-Z-].*-//g' | sed -e 's/.tgz$//g')
+        echo "$package"
+        curl -k --request POST --form "chart=@packages/$package" --user "gitlab-ci-token:$CI_JOB_TOKEN" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/${CHANNEL}/charts"
+      done
+  tags:
+    - helm
+  rules:
+    - *template-rules
+    - when: always
+  needs: [ 'helm_builder:build:job' ]
