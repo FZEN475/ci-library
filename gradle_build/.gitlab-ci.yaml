@@ -16,7 +16,14 @@ Build artifact:
     paths:
       - /home/gradle/.gradle/caches/
   script:
-    - tail -f /dev/null
+    - ls -all /home/gradle/.gradle/caches/
+    - gradle buildPlugin
   artifacts:
     paths:
-      - packages
+      - "build/distributions/*.zip"
+
+push artifact:
+  script:
+    - tail -f /dev/null
+  needs:
+    - "Build artifact"
