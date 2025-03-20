@@ -16,7 +16,7 @@ Build artifact:
     paths:
       - /home/gradle/.gradle/caches/
   script:
-    - ls -all /home/gradle/.gradle/caches/
+    - ls -all /home/gradle/.gradle/
     - gradle buildPlugin
   artifacts:
     paths:
