@@ -11,6 +11,10 @@ Build artifact:
   image:
     name: gradle
     entrypoint: [ "" ]
+  cache:
+    key: "$CI_PROJECT_ID"
+    paths:
+      - /home/gradle/.gradle/caches/
   script:
     - tail -f /dev/null
   artifacts:
