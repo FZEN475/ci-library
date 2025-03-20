@@ -10,6 +10,9 @@ spec:
     helm_builder:
       type: boolean
       default: false
+    gradle_builder:
+      type: boolean
+      default: false
 ---
 workflow:
   auto_cancel:
@@ -57,6 +60,19 @@ helm_builder:trigger:
     strategy: depend
   rules:
     - if: '"$[[ inputs.helm_builder ]]" == "true"'
+      when: always
+    - when: never
+
+gradle_builder:trigger:
+  stage: build
+  trigger:
+    include:
+      - project: 'library/ci'
+        ref: 'main'
+        file: 'gradle_build/.gitlab-ci.yaml'
+    strategy: depend
+  rules:
+    - if: '"$[[ inputs.gradle_builder ]]" == "true"'
       when: always
     - when: never
 
