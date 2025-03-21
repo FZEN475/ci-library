@@ -43,7 +43,6 @@ push artifact:
     - "Build artifact"
 
 release_job:
-  stage: final
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   script:
     - PLUGIN_VERSION=$(grep pluginVersion ./gradle.properties |  cut -d'=' -f2- | xargs)
