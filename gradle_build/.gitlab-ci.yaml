@@ -22,12 +22,22 @@ Build artifact:
     paths:
       - "README.md"
 
+#push artifact:
+#  script:
+#    - PLUGIN_VERSION=$(grep pluginVersion ./gradle.properties |  cut -d'=' -f2- | xargs)
+#    - >
+#      curl -v -k --location --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
+#      --upload-file $(find ./build/distributions/ -type f -name '*.*')
+#      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${PLUGIN_VERSION}/README.md"
+#  needs:
+#    - "Build artifact"
+
 push artifact:
   script:
     - PLUGIN_VERSION=$(grep pluginVersion ./gradle.properties |  cut -d'=' -f2- | xargs)
     - >
       curl -v -k --location --header "JOB-TOKEN: ${CI_JOB_TOKEN}" 
-      --upload-file $(find ./build/distributions/ -type f -name '*.*') 
+      --upload-file ./README.md
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${PLUGIN_VERSION}/README.md"
   needs:
     - "Build artifact"
