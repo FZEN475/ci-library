@@ -18,10 +18,9 @@ Build artifact:
   script:
     - ls -all /home/gradle/.gradle/
     - gradle buildPlugin
-    - ls -all ./build/
-#  artifacts:
-#    paths:
-#      - "README.md"
+  artifacts:
+    paths:
+      - "build/distributions/*.*"
 
 #push artifact:
 #  script:
