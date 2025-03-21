@@ -14,10 +14,12 @@ Build artifact:
   cache:
     key: "$CI_PROJECT_ID"
     paths:
-      - /home/gradle/.gradle/
+      - cashe/
   script:
+    - cp cashe/* /home/gradle/.gradle/
     - ls -all /home/gradle/.gradle/
-    - gradle buildPlugin
+#    - gradle buildPlugin
+    - cp /home/gradle/.gradle/* cashe/
   artifacts:
     paths:
       - "build/distributions/*.*"
