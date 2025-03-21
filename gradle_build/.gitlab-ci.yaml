@@ -49,7 +49,7 @@ release_job:
   release:                                         # See https://docs.gitlab.com/ee/ci/yaml/#release for available properties
     tag_name: '${PLUGIN_VERSION}'                # The version is incremented per pipeline.
     description: '${PLUGIN_VERSION}'
-  assets:
-    links:
-      - name: '${CI_PROJECT_NAME}'
-        url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${PLUGIN_VERSION}/README.md'
+    assets:
+      links:
+        - name: '${CI_PROJECT_NAME}'
+          url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${PLUGIN_VERSION}/README.md'
