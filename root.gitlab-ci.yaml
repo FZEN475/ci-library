@@ -15,7 +15,7 @@ spec:
       default: false
     release_version:
       type: string
-      default: '0.0'
+      default: ''
 ---
 workflow:
   auto_cancel:
@@ -82,7 +82,7 @@ gradle_builder:trigger:
 release:trigger:
   stage: final
   variables:
-    RELEASE_VERSION: $[[ inputs.release_version | expand_vars ]]
+    ORG_GRADLE_PROJECT_releaseVersion: $[[ inputs.release_version | expand_vars ]]
   trigger:
     include:
       - project: 'library/ci'
