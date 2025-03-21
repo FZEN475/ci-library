@@ -22,9 +22,11 @@ Build artifact:
       if [ -n -z "$( ls -A './cache/' )" ]; then
          cp ./cache/* /home/gradle/.gradle/
       fi
+    - echo "123" > /home/gradle/.gradle/test.txt
     - ls -all /home/gradle/.gradle/
 #    - gradle buildPlugin
     - cp -r /home/gradle/.gradle/* ./cache/
+    - ls -all ./cache/
   artifacts:
     paths:
       - "build/distributions/*.*"
