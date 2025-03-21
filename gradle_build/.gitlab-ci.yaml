@@ -9,7 +9,7 @@
 
 Build artifact:
   image:
-    name: gradle
+    name: registry.gitlab.com/gitlab-org/gitlab-runner/gitlab-runner-helper:x86_64-v17.10.0
     entrypoint: [ "" ]
   cache:
     key: "$CI_PROJECT_ID"
