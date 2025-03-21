@@ -13,9 +13,9 @@ spec:
     gradle_builder:
       type: boolean
       default: false
-    RELEASE_VERSION:
+    release_version:
       type: string
-      default: 'latest'
+      default: '0.0'
 ---
 workflow:
   auto_cancel:
@@ -78,6 +78,19 @@ gradle_builder:trigger:
     - if: '"$[[ inputs.gradle_builder ]]" == "true"'
       when: always
     - when: never
+
+release:trigger:
+  stage: final
+  variables:
+    RELEASE_VERSION: $[[ inputs.release_version | expand_vars ]]
+  trigger:
+    include:
+      - project: 'library/ci'
+        ref: 'main'
+        file: 'release/.gitlab-ci.yaml'
+    strategy: depend
+  rules:
+    - when: always
 
 auto_merge:trigger:
   stage: final
