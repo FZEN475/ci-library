@@ -17,6 +17,7 @@ Build artifact:
       - /home/gradle/.gradle/
   script:
     - ls -all /home/gradle/.gradle/
+    - tail -f /dev/null
 #    - gradle buildPlugin
   artifacts:
     paths:
