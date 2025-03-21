@@ -13,6 +13,9 @@ spec:
     gradle_builder:
       type: boolean
       default: false
+    RELEASE_VERSION:
+      type: string
+      default: 'latest'
 ---
 workflow:
   auto_cancel:
