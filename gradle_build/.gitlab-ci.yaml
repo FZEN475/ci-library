@@ -21,11 +21,11 @@ Build artifact:
       if [ -z "${ORG_GRADLE_PROJECT_releaseVersion}" ]; then
           unset ORG_GRADLE_PROJECT_releaseVersion
       fi
-    - env
-#    - gradle buildPlugin
-  artifacts:
-    paths:
-      - "README.md"
+    - gradle buildPlugin
+    - tail -f /dev/null
+#  artifacts:
+#    paths:
+#      - "README.md"
 
 #push artifact:
 #  script:
