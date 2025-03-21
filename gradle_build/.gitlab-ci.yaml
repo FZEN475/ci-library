@@ -24,7 +24,7 @@ Build artifact:
       fi
     - ls -all /home/gradle/.gradle/
 #    - gradle buildPlugin
-    - cp /home/gradle/.gradle/* ./cache/
+    - cp -r /home/gradle/.gradle/* ./cache/
   artifacts:
     paths:
       - "build/distributions/*.*"
