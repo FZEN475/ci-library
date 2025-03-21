@@ -19,6 +19,7 @@ Build artifact:
     - ls -all ./
     - mkdir -p cache/
     - ls -all ./
+    - tail -f /dev/null
     - cp ./cache/* /home/gradle/.gradle/
     - ls -all /home/gradle/.gradle/
 #    - gradle buildPlugin
