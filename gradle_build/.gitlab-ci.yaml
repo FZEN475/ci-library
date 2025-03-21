@@ -22,7 +22,7 @@ Build artifact:
           unset ORG_GRADLE_PROJECT_releaseVersion
       fi
     - gradle buildPlugin
-    - tail -f /dev/null
+    - ls -all ./build/
 #  artifacts:
 #    paths:
 #      - "README.md"
