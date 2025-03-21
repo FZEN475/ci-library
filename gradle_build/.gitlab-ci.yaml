@@ -17,10 +17,6 @@ Build artifact:
       - /home/gradle/.gradle/
   script:
     - ls -all /home/gradle/.gradle/
-    - |
-      if [ -z "${ORG_GRADLE_PROJECT_releaseVersion}" ]; then
-          unset ORG_GRADLE_PROJECT_releaseVersion
-      fi
     - gradle buildPlugin
     - ls -all ./build/
 #  artifacts:

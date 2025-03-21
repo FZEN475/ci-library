@@ -68,8 +68,6 @@ helm_builder:trigger:
 
 gradle_builder:trigger:
   stage: build
-  variables:
-    ORG_GRADLE_PROJECT_releaseVersion: $[[ inputs.release_version | expand_vars ]]
   trigger:
     include:
       - project: 'library/ci'
