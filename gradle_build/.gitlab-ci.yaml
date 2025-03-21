@@ -9,14 +9,14 @@
 
 Build artifact:
   image:
-    name: registry.gitlab.com/gitlab-org/gitlab-runner/gitlab-runner-helper:x86_64-v17.10.0
+    name: gradle
     entrypoint: [ "" ]
   cache:
     key: "$CI_PROJECT_ID"
     paths:
       - /home/gradle/.gradle/
   script:
-#    - ls -all /home/gradle/.gradle/
+    - ls -all /home/gradle/.gradle/
     - tail -f /dev/null
 #    - gradle buildPlugin
   artifacts:
