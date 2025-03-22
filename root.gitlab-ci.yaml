@@ -78,6 +78,9 @@ gradle_builder:trigger:
     - if: '"$[[ inputs.gradle_builder ]]" == "true"'
       when: always
     - when: never
+  only:
+    refs:
+      - tags
 
 #release:trigger:
 #  stage: final
