@@ -75,22 +75,24 @@ gradle_builder:trigger:
         file: 'gradle_build/.gitlab-ci.yaml'
     strategy: depend
   rules:
-    - if: '"$[[ inputs.gradle_builder ]]" == "true" && $CI_COMMIT_TAG'
+    - if: '"$[[ inputs.gradle_builder ]]" == "true"'
       when: always
     - when: never
 
-#release:trigger:
-#  stage: final
-#  variables:
-#    VERSION: $[[ inputs.release_version | expand_vars ]]
-#  trigger:
-#    include:
-#      - project: 'library/ci'
-#        ref: 'main'
-#        file: 'release/.gitlab-ci.yaml'
-#    strategy: depend
-#  rules:
-#    - when: always
+release:trigger:
+  stage: final
+  variables:
+    GRADLE_BUILDER: $[[ inputs.gradle_builder | expand_vars ]]
+  trigger:
+    include:
+      - project: 'library/ci'
+        ref: 'main'
+        file: 'release/.gitlab-ci.yaml'
+    strategy: depend
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - when: never
 
 auto_merge:trigger:
   stage: final
