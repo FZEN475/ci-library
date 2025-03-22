@@ -8,42 +8,57 @@
   <<: *template-variables
 
 Build artifact:
-  image:
-    name: gradle
-    entrypoint: [ "" ]
-  cache:
-    key: "$CI_PROJECT_ID"
-    paths:
-      - ./cache/
   script:
-    - gradle buildPlugin -g ./cache/
-  artifacts:
-    paths:
-      - "build/distributions/*.*"
-
-push test artifact:
-  script:
-    - >
-      curl -v -k --location --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
-      --upload-file $(find ./build/distributions/ -type f -name '*.*')
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/test/${CI_PROJECT_NAME}-test${EXTENCION}"
-  needs:
-    - "Build artifact"
+    - |
+      curl -L \
+        -X POST \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: Bearer <YOUR-TOKEN>" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        https://api.github.com/repos/FZEN475/${CI_PROJECT_NAME}/releases \
+        -d '{"tag_name":"v1.0.0","target_commitish":"master","name":"v1.0.0","body":"Description of the release","draft":false,"prerelease":false,"generate_release_notes":false}'
   rules:
-    - if: '$CI_COMMIT_TAG'
-      when: never
-    - when: always
-
-push artifact:
-  script:
-    - >
-      curl -v -k --location --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
-      --upload-file $(find ./build/distributions/ -type f -name '*.*')
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${PLUGIN_VERSION}/${CI_PROJECT_NAME}-${CI_COMMIT_TAG}${EXTENCION}"
-  needs:
-    - "Build artifact"
-  rules:
-    - if: '$CI_COMMIT_TAG'
+    - if: '$GITHUB_TOKEN'
       when: always
     - when: never
+
+#Build artifact:
+#  image:
+#    name: gradle
+#    entrypoint: [ "" ]
+#  cache:
+#    key: "$CI_PROJECT_ID"
+#    paths:
+#      - ./cache/
+#  script:
+#    - gradle buildPlugin -g ./cache/
+#  artifacts:
+#    paths:
+#      - "build/distributions/*.*"
+#
+#push test artifact:
+#  script:
+#    - >
+#      curl -v -k --location --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
+#      --upload-file $(find ./build/distributions/ -type f -name '*.*')
+#      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/test/${CI_PROJECT_NAME}-test${EXTENCION}"
+#  needs:
+#    - "Build artifact"
+#  rules:
+#    - if: '$CI_COMMIT_TAG'
+#      when: never
+#    - when: always
+#
+#push artifact:
+#  script:
+#    - >
+#      curl -v -k --location --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
+#      --upload-file $(find ./build/distributions/ -type f -name '*.*')
+#      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${PLUGIN_VERSION}/${CI_PROJECT_NAME}-${CI_COMMIT_TAG}${EXTENCION}"
+#  needs:
+#    - "Build artifact"
+#  rules:
+#    - if: '$CI_COMMIT_TAG'
+#      when: always
+#    - when: never
 
