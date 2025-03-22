@@ -54,7 +54,7 @@ docker_builder:trigger:
 helm_builder:trigger:
   stage: build
   variables:
-    MERGE_BRANCH_ACTION: $[[ inputs.merge_branch_action | expand_vars ]]
+    MERGE_BRANCH_ACTION: "$[[ inputs.merge_branch_action | expand_vars ]]"
   trigger:
     include:
       - project: 'library/ci'
@@ -82,7 +82,7 @@ gradle_builder:trigger:
 release:trigger:
   stage: final
   variables:
-    GRADLE_BUILDER: $[[ inputs.gradle_builder ]]
+    GRADLE_BUILDER: "$[[ inputs.gradle_builder ]]"
   trigger:
     include:
       - project: 'library/ci'
@@ -97,7 +97,7 @@ release:trigger:
 auto_merge:trigger:
   stage: final
   variables:
-    MERGE_BRANCH_ACTION: $[[ inputs.merge_branch_action | expand_vars ]]
+    MERGE_BRANCH_ACTION: "$[[ inputs.merge_branch_action | expand_vars ]]"
   trigger:
     include:
       - project: 'library/ci'
