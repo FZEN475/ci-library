@@ -55,7 +55,6 @@ mirror release to github:
         --data-binary "@$(find ./build/distributions/ -type f -name '*.*')"
   needs:
     - "Build artifact"
+  allow_failure: true
   rules:
-    - if: $GITHUB_TOKEN
       when: always
-    - when: never
