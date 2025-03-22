@@ -82,7 +82,7 @@ gradle_builder:trigger:
 release:trigger:
   stage: final
   variables:
-    GRADLE_BUILDER: $[[ inputs.gradle_builder | expand_vars ]]
+    GRADLE_BUILDER: $[[ inputs.gradle_builder ]]
   trigger:
     include:
       - project: 'library/ci'
