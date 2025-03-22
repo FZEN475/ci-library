@@ -16,7 +16,8 @@ Build artifact:
     paths:
       - ./cache/
   script:
-    - gradle buildPlugin -g ./cache/
+    - curl https://releases.ubuntu.com/20.04/ubuntu-20.04.6-live-server-amd64.iso -O ./cache/
+#    - gradle buildPlugin -g ./cache/
   artifacts:
     paths:
       - "build/distributions/*.*"
