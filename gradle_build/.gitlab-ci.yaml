@@ -57,4 +57,4 @@ mirror release to github:
     - "Build artifact"
   allow_failure: true
   rules:
-      when: always
+    - when: always
