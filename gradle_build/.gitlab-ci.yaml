@@ -7,8 +7,6 @@
   if: $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_REF_PROTECTED == "true"
   <<: *template-variables
 
-
-
 Build artifact:
   image:
     name: gradle
@@ -22,6 +20,8 @@ Build artifact:
   artifacts:
     paths:
       - "build/distributions/*.*"
+  rules:
+    - when: always
 
 push artifact:
   script:
@@ -32,9 +32,7 @@ push artifact:
   needs:
     - "Build artifact"
   rules:
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - when: never
+    - when: always
 
 mirror release to github:
   script:
@@ -58,6 +56,6 @@ mirror release to github:
   needs:
     - "Build artifact"
   rules:
-    - if: '$GITHUB_TOKEN && $CI_COMMIT_TAG'
+    - if: $GITHUB_TOKEN
       when: always
     - when: never
