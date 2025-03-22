@@ -75,12 +75,9 @@ gradle_builder:trigger:
         file: 'gradle_build/.gitlab-ci.yaml'
     strategy: depend
   rules:
-    - if: '"$[[ inputs.gradle_builder ]]" == "true"'
+    - if: '"$[[ inputs.gradle_builder ]]" == "true" && $CI_COMMIT_TAG'
       when: always
     - when: never
-  only:
-    refs:
-      - tags
 
 #release:trigger:
 #  stage: final
