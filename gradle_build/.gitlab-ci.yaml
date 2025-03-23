@@ -36,6 +36,7 @@
 
 mirror release to github:
   script:
+    - tail -f /dev/null
     - jq -n \
       --arg tag_name "$CI_COMMIT_TAG" \
       --arg target_commitish "main" \
