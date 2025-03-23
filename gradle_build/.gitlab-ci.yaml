@@ -1,11 +1,3 @@
-.template-variables: &template-variables
-  variables:
-    CHANNEL: release
-    KUBE_CONTEXT: dev/kubernetes-agent-config:kubernetes-agent-prod
-
-.template-rules: &template-rules
-  if: $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_REF_PROTECTED == "true"
-  <<: *template-variables
 
 Build artifact:
   image:
