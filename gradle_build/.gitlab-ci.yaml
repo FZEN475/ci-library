@@ -34,9 +34,9 @@ mirror release to github:
       --arg target_commitish "main" 
       --arg name "$CI_COMMIT_TAG" 
       --arg body "$CI_PROJECT_NAME-$CI_COMMIT_TAG$EXTENCION" 
-      --argjson draft false 
-      --argjson prerelease false 
-      --argjson generate_release_notes false 
+      --argjson draft "false" 
+      --argjson prerelease "false" 
+      --argjson generate_release_notes "false" 
       '$ARGS.named' > data.json
       cat ./data.json
     - |
