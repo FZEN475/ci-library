@@ -1,0 +1,167 @@
+
+include:
+#  - local: 'templates/-0-tests-rules/template.yml'
+#    inputs:
+#      commit-tag-pattern: '/^\d+\.\d+\.\d+$/'
+
+  - local: 'templates/auto-gitlab/template.yml'
+    inputs:
+      auto-rebase: true
+      auto-approve: true
+      
+      auto-merge: true
+      auto-remove-source-branch: true
+      
+      auto-tag: true
+      auto-tag-pattern: '/^\d+\.\d+\.\d+$/'
+      auto-tag-version-major: 0
+      auto-tag-version-minor: 4
+      
+      auto-release: true
+
+variables:
+  CI_DEBUG_TRACE: "true"
+
+stages:
+  - auto-merge
+  - auto-release
+    
+
+
+
+
+
+
+
+
+
+
+#spec:
+#  inputs:
+#    merge_branch_action:
+#      options: ['skip', 'delete']
+#      type: string
+#      default: 'skip'
+#    docker_builder:
+#      type: boolean
+#      default: false
+#    helm_builder:
+#      type: boolean
+#      default: false
+#    gradle_builder:
+#      type: boolean
+#      default: false
+#    ansible_collection_build:
+#      type: boolean
+#      default: false
+#    release_version:
+#      type: string
+#      default: ''
+#---
+#workflow:
+#  auto_cancel:
+#    on_job_failure: all
+#
+#stages:
+#  - test_code
+#  - build
+#  - test_build
+#  - deploy
+#  - test_deploy
+#  - final
+#
+#debug:job:
+#  stage: test_code
+#  script:
+#    - 'sleep 1'
+#  rules:
+#    - if: $CI_DEBUG_TRACE == "true"
+#      when: always
+#    - when: never
+#
+#docker_builder:trigger:
+#  stage: build
+#  trigger:
+#    include:
+#      - project: 'library/ci'
+#        ref: 'main'
+#        file: 'docker_build/.gitlab-ci.yaml'
+#    strategy: depend
+#  rules:
+#    - if: '"$[[ inputs.docker_builder ]]" == "true"'
+#      when: always
+#    - when: never
+#
+#helm_builder:trigger:
+#  stage: build
+#  variables:
+#    MERGE_BRANCH_ACTION: "$[[ inputs.merge_branch_action | expand_vars ]]"
+#  trigger:
+#    include:
+#      - project: 'library/ci'
+#        ref: 'main'
+#        file: 'helm_build/.gitlab-ci.yaml'
+#    strategy: depend
+#  rules:
+#    - if: '"$[[ inputs.helm_builder ]]" == "true"'
+#      when: always
+#    - when: never
+#
+#gradle_builder:trigger:
+#  stage: build
+#  trigger:
+#    include:
+#      - project: 'library/ci'
+#        ref: 'main'
+#        file: 'gradle_build/.gitlab-ci.yaml'
+#    strategy: depend
+#  rules:
+#    - if: '"$[[ inputs.gradle_builder ]]" == "true" && $CI_COMMIT_TAG'
+#      when: always
+#    - when: never
+#
+#ansible_collection_build:trigger:
+#  stage: build
+#  trigger:
+#    include:
+#      - project: 'library/ci'
+#        ref: 'main'
+#        file: 'ansible_collection_build/.gitlab-ci.yaml'
+#    strategy: depend
+#  rules:
+#    - if: '"$[[ inputs.ansible_collection_build ]]" == "true" && $CI_COMMIT_REF_PROTECTED == "true"'
+#      when: always
+#    - when: never
+#
+#release:trigger:
+#  stage: final
+#  variables:
+#    GRADLE_BUILDER: "$[[ inputs.gradle_builder ]]"
+#  trigger:
+#    include:
+#      - project: 'library/ci'
+#        ref: 'main'
+#        file: 'release/.gitlab-ci.yaml'
+#    strategy: depend
+#  rules:
+#    - if: '$CI_COMMIT_TAG'
+#      when: always
+#    - when: never
+#
+#auto_merge:trigger:
+#  stage: final
+#  variables:
+#    MERGE_BRANCH_ACTION: "$[[ inputs.merge_branch_action | expand_vars ]]"
+#  trigger:
+#    include:
+#      - project: 'library/ci'
+#        ref: 'main'
+#        file: 'auto_merge/.gitlab-ci.yaml'
+#    strategy: depend
+#  needs:
+#    - job: docker_builder:trigger
+#      optional: true
+#  rules:
+#    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+#      when: always
+#    - when: never

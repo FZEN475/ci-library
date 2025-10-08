@@ -1,0 +1,173 @@
+spec:
+  inputs:
+    test-pattern:
+      description: "Тест паттерна " # "/^[vV]?\\d\\.\\d+\\.\\d+$/" или /^[vV]?\d\.\d+\.\d+$/
+      type: string
+      default: /^[vV]?\d\.\d+\.\d+$/
+---
+
+variables:
+  TEST_PATTERN: $[[ inputs.test-pattern ]]
+
+stages:
+  - commit-rules-test
+  - combine-rules-test
+
+#always-job:
+#  stage: commit-rules-test
+#  script:
+#    - echo "always-job from test"
+#  rules:
+#    - when: always
+#
+#push-job:
+#  stage: commit-rules-test
+#  script:
+#    - echo "always-job"
+#  rules:
+#    - if: '$CI_PIPELINE_SOURCE == "push"'
+#      when: always
+#    - when: never
+#
+#CI_COMMIT_REF_PROTECTED-job:
+#  stage: commit-rules-test
+#  script:
+#    - echo "always-job"
+#  rules:
+#    - if: '$CI_COMMIT_REF_PROTECTED'
+#      when: always
+#    - when: never
+#
+#merge_request_event-job:
+#  stage: commit-rules-test
+#  script:
+#    - echo "always-job"
+#  rules:
+#    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+#      when: always
+#    - when: never
+#
+#CI_COMMIT_TAG-job:
+#  stage: commit-rules-test
+#  script:
+#    - echo "always-job"
+#  rules:
+#    - if: '$CI_COMMIT_TAG && ($TEST_PATTERN == "" || $CI_COMMIT_TAG =~ $TEST_PATTERN)'
+#      when: always
+#    - when: never
+
+.push:
+  only:
+    - if: '$CI_PIPELINE_SOURCE != "push"'
+      when: never
+  not:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: never
+  protected-only:
+    - if: '$CI_COMMIT_REF_PROTECTED == "false"'
+      when: never
+  not-protected-only:
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+      when: never
+      
+.merge:
+  only:
+    - if: '$CI_PIPELINE_SOURCE != "merge_request_event"'
+      when: never
+  not:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+  source-protect-only:
+    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_PROTECTED == null || $CI_MERGE_REQUEST_SOURCE_BRANCH_PROTECTED == "false"'
+      when: never
+  not-source-protect-only:
+    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_PROTECTED == "true"'
+      when: never
+  target-protect-only:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == null || $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "false"'
+      when: never
+  not-target-protect-only:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true"'
+      when: never
+
+.tagged:
+  only:
+    - if: '$CI_COMMIT_TAG == null && $CI_COMMIT_BRANCH == null'
+      when: never
+  with:
+    - if: '$CI_COMMIT_TAG == null'
+      when: never
+  not:
+    - if: $CI_COMMIT_TAG
+      when: never
+  
+.push.only>push.not-protected-only>tagged.not:
+  rules:
+    - !reference [.push, only]
+    - !reference [.push, not-protected-only]
+    - !reference [.tagged, not]
+
+push.only>push.not-protected-only>tagged.not>>job:
+  stage: commit-rules-test
+  script:
+    - echo "push.only>push.not-protected-only>tagged.not>>job"
+  rules:
+    - !reference [.push.only>push.not-protected-only>tagged.not, rules]
+    - when: always
+      
+
+.push.only>push.protected-only>tagged.not:
+  rules:
+    - !reference [.push, only]
+    - !reference [.push, protected-only]
+    - !reference [.tagged, not]
+
+push.only>push.protected-only>tagged.not>>job:
+  stage: commit-rules-test
+  script:
+    - echo "push.only>push.protected-only>tagged.not>>job"
+  rules:
+    - !reference [.push.only>push.protected-only>tagged.not, rules]
+    - when: always
+
+.push.only>push.protected-only>tagged.with:
+  rules:
+    - !reference [.push, only]
+    - !reference [.push, protected-only]
+    - !reference [.tagged, with]
+
+push.only>push.protected-only>tagged.with>>job:
+  stage: commit-rules-test
+  script:
+    - echo "push.only>push.protected-only>tagged.with>>job"
+  rules:
+    - !reference [.push.only>push.protected-only>tagged.with, rules]
+    - when: always
+
+.merge.only>merge.target-protect-only:
+  rules:
+    - !reference [.merge, only]
+    - !reference [.merge, target-protect-only]
+#    - !reference [.tagged, not] -> У запросов на слияние не может быть прикреплённых тегов.
+
+merge.only>merge.target-protect-only>>job:
+  stage: commit-rules-test
+  script:
+    - echo ".merge.only>merge.target-protect-only>>job"
+  rules:
+    - !reference [.merge.only>merge.target-protect-only, rules]
+    - when: always
+
+.tagged.only>push.not:
+  rules:
+    - !reference [.tagged, only]
+    - !reference [.push, not]
+
+tagged.only>push.not>>job:
+  stage: commit-rules-test
+  script:
+    - echo "tagged.only>push.not>>job"
+  rules:
+    - !reference [.tagged.only>push.not, rules]
+    - when: always
+      

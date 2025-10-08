@@ -1,0 +1,90 @@
+# templates/build-ansible-collection/template.yml
+spec:
+  inputs:
+    job-prefix:
+      description: "Job prefix"
+      type: string
+      default: "-$CI_PROJECT_ID-$CI_PIPELINE_ID"
+    collection-path:
+      description: "Collection source"
+      type: string
+    ansible-galaxy-extra-args-build:
+      description: "Extra args for build"
+      type: string
+      default: ""
+---
+variables:
+  COLLECTION_PATH: $[[ inputs.collection-path ]]
+  ANSIBLE_GALAXY_EXTRA_ARGS_BUILD: $[[ inputs.ansible-galaxy-extra-args-build ]]
+  IS_TAG_VALID: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ "^[0-9]+\\.[0-9]+\\.[0-9]+$"'
+
+
+.is_merge_request_rule: 
+  - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED != "true"'
+    when: never
+#  - if: '$CI_PIPELINE_SOURCE != "merge_request_event"'
+#    when: never
+
+stages:
+  - build
+# TODO: Не получилось пробрасывать динамические имена в другие component.inputs
+# FIXME: Требуется вернуться к этому позже
+# $[[ inputs.job-prefix | expand_vars ]]
+"ansible-galaxy-build":
+  stage: build
+  image: docker.io/cytopia/ansible:latest-tools
+  variables:
+    ARTIFACTS_DIR: "artifacts-$CI_PROJECT_ID-$CI_JOB_ID"
+  script:
+    - cd "$COLLECTION_PATH"
+    - ansible-galaxy collection build -f "$ANSIBLE_GALAXY_EXTRA_ARGS_BUILD"
+    - mkdir -p "$CI_PROJECT_DIR/$ARTIFACTS_DIR/$COLLECTION_PATH"
+    - ls -all ./
+    - echo "$COLLECTION_PATH"
+    - mv ./*.tar.gz "$CI_PROJECT_DIR/$ARTIFACTS_DIR/$COLLECTION_PATH"/
+  artifacts:
+    name: "$ARTIFACTS_DIR"
+    paths:
+      - "$ARTIFACTS_DIR/"
+    expire_in: 1 day
+  rules:
+#    - !reference [.is_merge_request_rule]
+    - when: always
+
+#"package-$[[ inputs.collection-path ]]":
+#  stage: package
+#  dependencies:
+#    - "build-$[[ inputs.collection-path ]]"
+#  script:
+#    - cd $COLLECTION_PATH
+#    - export COLLECTION_ARCHIVE=$(ls *.tar.gz)
+#    - |
+#      curl -k -f --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+#        --upload-file $COLLECTION_ARCHIVE \
+#        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/$PACKAGE_NAME/latest/$COLLECTION_ARCHIVE"
+#  rules:
+#    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+#      when: always
+#    - when: never
+
+#"release-$[[ inputs.collection-path ]]":
+#  stage: release
+#  dependencies:
+#    - "build-$[[ inputs.collection-path ]]"
+#  script:
+#    - cd $COLLECTION_PATH
+#    - export COLLECTION_ARCHIVE=$(ls *.tar.gz)
+#    - |
+#      curl -k -f --request POST --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+#           --form "name=Release $CI_COMMIT_TAG" \
+#           --form "tag_name=$CI_COMMIT_TAG" \
+#           --form "description=Automated release for tag $CI_COMMIT_TAG" \
+#           --form "assets[links][][name]=$COLLECTION_ARCHIVE" \
+#           --form "assets[links][][url]=$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/$PACKAGE_NAME/latest/$COLLECTION_ARCHIVE" \
+#           "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases"
+#
+#  rules:
+#    - if: '$CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG =~ "^[0-9]+\\.[0-9]+\\.[0-9]+$"'
+#      when: always
+#    - when: never
+
