@@ -364,6 +364,32 @@ stages:
         '{name: $name, tag_name: $tag_name, description: $description, assets: {links: []}}'
     )
 
+    # --- Проверяем docker.env ---
+    if [ -f "docker.env" ]; then
+        log_info "🐳 Found docker.env — adding docker image info to release assets"
+        # Загружаем переменные из docker.env
+        source docker.env
+        
+        # Добавляем docker_image как ссылку
+        RELEASE_JSON=$(echo "$RELEASE_JSON" | jq \
+            --arg name "docker_image" \
+            --arg url "$docker_image" \
+            --arg filepath "/docker_image" \
+            '.assets.links += [{"name": $name, "url": $url, "link_type": "image", "filepath": $filepath}]'
+        )
+        
+        # Добавляем docker_digest как ссылку
+        RELEASE_JSON=$(echo "$RELEASE_JSON" | jq \
+            --arg name "docker_digest" \
+            --arg url "$docker_image_digest" \
+            --arg filepath "/docker_digest" \
+            '.assets.links += [{"name": $name, "url": $url, "link_type": "image", "filepath": $filepath}]'
+        )
+    else
+        log_info "⚠️ docker.env not found — skipping docker info"
+    fi
+
+
     # Если есть артефакты, добавляем их как links
     if [ -d "$ARTIFACTS_DIR" ] && [ "$(ls -A "$ARTIFACTS_DIR" 2>/dev/null)" ]; then
         log_info "📦 Found artifact directories — preparing assets..."
@@ -384,7 +410,8 @@ stages:
                 RELEASE_JSON=$(echo "$RELEASE_JSON" | jq \
                     --arg name "$PACKAGE_NAME/$filename" \
                     --arg url "$url" \
-                    '.assets.links += [{"name": $name, "url": $url}]'
+                    --arg filepath "/$filename" \
+                    '.assets.links += [{"name": $name, "url": $url, "link_type": "package", "filepath": $filepath}]'
                 )
             done
         done
@@ -401,6 +428,9 @@ stages:
       -d "${RELEASE_JSON}" \
       "$API_URL"
   }
+
+
+
 
 "auto-rebase-source-branch$[[ inputs.job-prefix | expand_vars ]]":
   stage: auto-merge
