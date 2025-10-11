@@ -13,48 +13,48 @@ stages:
   - commit-rules-test
   - combine-rules-test
 
-#always-job:
-#  stage: commit-rules-test
-#  script:
-#    - echo "always-job from test"
-#  rules:
-#    - when: always
-#
-#push-job:
-#  stage: commit-rules-test
-#  script:
-#    - echo "always-job"
-#  rules:
-#    - if: '$CI_PIPELINE_SOURCE == "push"'
-#      when: always
-#    - when: never
-#
-#CI_COMMIT_REF_PROTECTED-job:
-#  stage: commit-rules-test
-#  script:
-#    - echo "always-job"
-#  rules:
-#    - if: '$CI_COMMIT_REF_PROTECTED'
-#      when: always
-#    - when: never
-#
-#merge_request_event-job:
-#  stage: commit-rules-test
-#  script:
-#    - echo "always-job"
-#  rules:
-#    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-#      when: always
-#    - when: never
-#
-#CI_COMMIT_TAG-job:
-#  stage: commit-rules-test
-#  script:
-#    - echo "always-job"
-#  rules:
-#    - if: '$CI_COMMIT_TAG && ($TEST_PATTERN == "" || $CI_COMMIT_TAG =~ $TEST_PATTERN)'
-#      when: always
-#    - when: never
+always-job:
+  stage: commit-rules-test
+  script:
+    - echo "always-job from test"
+  rules:
+    - when: always
+
+push-job:
+  stage: commit-rules-test
+  script:
+    - echo "always-job"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: always
+    - when: never
+
+CI_COMMIT_REF_PROTECTED-job:
+  stage: commit-rules-test
+  script:
+    - echo "always-job"
+  rules:
+    - if: '$CI_COMMIT_REF_PROTECTED'
+      when: always
+    - when: never
+
+merge_request_event-job:
+  stage: commit-rules-test
+  script:
+    - echo "always-job"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - when: never
+
+CI_COMMIT_TAG-job:
+  stage: commit-rules-test
+  script:
+    - echo "always-job"
+  rules:
+    - if: '$CI_COMMIT_TAG && ($TEST_PATTERN == "" || $CI_COMMIT_TAG =~ $TEST_PATTERN)'
+      when: always
+    - when: never
 
 .push:
   only:
