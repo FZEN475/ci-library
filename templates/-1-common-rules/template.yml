@@ -110,7 +110,7 @@
   - !reference [ .install-tool ]
   - install_tool jq openssl ca-certificates
   - !reference [ .register-ca ]
-  - register_ca() "$CI_SERVER_TLS_CA_FILE"
+  - register_ca "$CI_SERVER_TLS_CA_FILE"
 
 
 .push:

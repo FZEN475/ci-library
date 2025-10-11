@@ -1,10 +1,10 @@
 # templates/build-ansible-collection/template.yml
 spec:
   inputs:
-    job-prefix:
-      description: "Job prefix"
+    job-name:
+      description: "Name of build job"
       type: string
-      default: "-$CI_PROJECT_ID-$CI_PIPELINE_ID"
+      default: "ansible-galaxy-build"
     collection-path:
       description: "Collection source"
       type: string
@@ -30,7 +30,7 @@ stages:
 # TODO: Не получилось пробрасывать динамические имена в другие component.inputs
 # FIXME: Требуется вернуться к этому позже
 # $[[ inputs.job-prefix | expand_vars ]]
-"ansible-galaxy-build":
+"$[[ inputs.job-name | expand_vars ]]":
   stage: build
   image: docker.io/cytopia/ansible:latest-tools
   variables:
