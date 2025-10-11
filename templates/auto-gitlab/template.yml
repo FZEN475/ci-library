@@ -551,7 +551,6 @@ stages:
   needs:
     - job: "auto-create-TAG$[[ inputs.job-prefix | expand_vars ]]"
       optional: true
-    - $[[ inputs.dependencies-jobs ]]
   dependencies:
     - $[[ inputs.dependencies-jobs ]]
   before_script:
