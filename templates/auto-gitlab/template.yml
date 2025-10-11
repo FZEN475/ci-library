@@ -182,59 +182,86 @@ stages:
   }
 
   merge_merge_request() {
-      local token="${1:?Не передан токен авторизации}"
-      local iid="${2:?Не передан ID Merge Request}"
-
-      : "${CI_API_V4_URL:?Не задана переменная CI_API_V4_URL}"
-      : "${CI_PROJECT_ID:?Не задана переменная CI_PROJECT_ID}"
-      : "${CI_COMMIT_MESSAGE:?Не задана переменная CI_COMMIT_MESSAGE}"
-
+      token="$1"
+      iid="$2"
+  
+      if [ -z "$token" ]; then
+          log_info "Не передан токен авторизации" >&2
+          return 1
+      fi
+      if [ -z "$iid" ]; then
+          log_info "Не передан ID Merge Request" >&2
+          return 1
+      fi
+  
+      if [ -z "$CI_API_V4_URL" ]; then
+          log_info "Не задана переменная CI_API_V4_URL" >&2
+          return 1
+      fi
+      if [ -z "$CI_PROJECT_ID" ]; then
+          log_info "Не задана переменная CI_PROJECT_ID" >&2
+          return 1
+      fi
+      if [ -z "$CI_COMMIT_MESSAGE" ]; then
+          log_info "Не задана переменная CI_COMMIT_MESSAGE" >&2
+          return 1
+      fi
+  
       # Получаем информацию о текущем MR
-      local MR_info
       MR_info=$(curl -s -f -X GET \
-          -H "Authorization: Bearer ${token}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${iid}")
-
+          -H "Authorization: Bearer $token" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$iid") || return 1
+  
       log_info "$MR_info"
-
-      local remove_branch="${AUTO_REMOVE_SOURCE_BRANCH}"
-
-      if [[ "${CI_MERGE_REQUEST_SOURCE_BRANCH_PROTECTED}" == "true" ]]; then
+  
+      remove_branch="$AUTO_REMOVE_SOURCE_BRANCH"
+  
+      if [ "$CI_MERGE_REQUEST_SOURCE_BRANCH_PROTECTED" = "true" ]; then
           log_info "Ветка защищена, принудительно отключаем удаление после merge"
           remove_branch="false"
       fi
-
+  
       merge_status=$(echo "$MR_info" | jq -r '.merge_status')
-      
+  
       # Определяем, нужен ли auto_merge
       auto_merge_json=""
       if [ "$merge_status" = "checking" ]; then
-        auto_merge_json=', "auto_merge": true'
+          auto_merge_json=", \"auto_merge\": true"
       fi
-
+  
       MERGE_MERGE_JSON=$(jq -n \
-          --arg remove_branch "${remove_branch}" \
+          --arg remove_branch "$remove_branch" \
           --arg auto_merge_strategy "merge_when_pipeline_succeeds" \
-          --arg squash_commit_message "${CI_COMMIT_MESSAGE}" \
+          --arg squash_commit_message "$CI_COMMIT_MESSAGE" \
           '{
-            should_remove_source_branch: ($remove_branch | test("(?i)^true$")), 
+            should_remove_source_branch: ($remove_branch == "true"), 
             auto_merge_strategy: $auto_merge_strategy, 
             squash: true, 
-            squash_commit_message: $squash_commit_message 
-          }'
-      )
-
-      # Если нужен auto_merge, объединяем через jq
+            squash_commit_message: $squash_commit_message
+          }')
+  
       if [ -n "$auto_merge_json" ]; then
-        MERGE_MERGE_JSON=$(echo "$MERGE_MERGE_JSON" | jq ". + {auto_merge: true}")
+          MERGE_MERGE_JSON=$(echo "$MERGE_MERGE_JSON" | jq '. + {auto_merge: true}')
       fi
-
-      # Выполняем merge MR
-      curl -f -X PUT  \
-        -H "Authorization: Bearer ${token}" \
-        -H "Content-Type: application/json" \
-        -d "${MERGE_MERGE_JSON}" \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${iid}/merge"
+  
+      # Первый merge
+      if ! curl -f -X PUT \
+          -H "Authorization: Bearer $token" \
+          -H "Content-Type: application/json" \
+          -d "$MERGE_MERGE_JSON" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$iid/merge"; then
+  
+          log_info "Первый merge не удался, пробуем повторно без auto_merge"
+  
+          # Убираем auto_merge
+          MERGE_MERGE_JSON_NO_AUTO=$(echo "$MERGE_MERGE_JSON" | jq 'del(.auto_merge)')
+  
+          curl -f -X PUT \
+            -H "Authorization: Bearer $token" \
+            -H "Content-Type: application/json" \
+            -d "$MERGE_MERGE_JSON_NO_AUTO" \
+            "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$iid/merge"
+      fi
   }
 
 .gitlab-api-approve: |
@@ -343,14 +370,6 @@ stages:
   }
  
 
-
-
-
-
-
-
-
-
 .gitlab-api-release: |
   create_release_with_artifacts() {
     local token="${1:?Не передан токен авторизации}"
@@ -434,7 +453,7 @@ stages:
 
 "auto-rebase-source-branch$[[ inputs.job-prefix | expand_vars ]]":
   stage: auto-merge
-  extends: [ .global-cache ]
+  extends: [ .package-cache ]
   before_script:
     - !reference [ .install-utility ]
     - !reference [ .gitlab-api-merge ]
@@ -457,7 +476,7 @@ stages:
 
 "auto-approve$[[ inputs.job-prefix | expand_vars ]]":
   stage: auto-merge
-  extends: [ .global-cache ]
+  extends: [ .package-cache ]
   needs:
     - job: "auto-rebase-source-branch$[[ inputs.job-prefix | expand_vars ]]"
       optional: true
@@ -483,7 +502,7 @@ stages:
 
 "auto-merge$[[ inputs.job-prefix | expand_vars ]]":
   stage: auto-merge
-  extends: [ .global-cache ]
+  extends: [ .package-cache ]
   needs:
     - job: "auto-rebase-source-branch$[[ inputs.job-prefix | expand_vars ]]"
       optional: true
@@ -510,7 +529,7 @@ stages:
 
 "auto-create-TAG$[[ inputs.job-prefix | expand_vars ]]":
   stage: auto-merge
-  extends: [ .global-cache ]
+  extends: [ .package-cache ]
   needs:
     - job: "auto-merge$[[ inputs.job-prefix | expand_vars ]]"
       optional: true
@@ -528,7 +547,7 @@ stages:
 
 "auto-release$[[ inputs.job-prefix | expand_vars ]]":
   stage: auto-release
-  extends: [ .global-cache ]
+  extends: [ .package-cache ]
   needs:
     - job: "auto-create-TAG$[[ inputs.job-prefix | expand_vars ]]"
       optional: true

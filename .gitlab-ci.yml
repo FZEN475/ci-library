@@ -1,8 +1,8 @@
 
 include:
-#  - local: 'templates/-0-tests-rules/template.yml'
-#    inputs:
-#      commit-tag-pattern: '/^\d+\.\d+\.\d+$/'
+  - local: 'templates/-0-tests-rules/template.yml'
+    inputs:
+      test-pattern: '/^\d+\.\d+\.\d+$/'
 
   - local: 'templates/auto-gitlab/template.yml'
     inputs:
@@ -23,6 +23,8 @@ variables:
   CI_DEBUG_TRACE: "true"
 
 stages:
+  - commit-rules-test
+  - combine-rules-test
   - auto-merge
   - auto-release
     
