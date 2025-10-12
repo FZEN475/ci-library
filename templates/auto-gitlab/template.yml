@@ -48,7 +48,11 @@ spec:
       description: "Auto release after merge"
       type: boolean
       default: false
-    dependencies-jobs:
+    artifacts-dir:
+      description: "Directory with artifacts"
+      type: string
+      default: "artifacts-$CI_PROJECT_ID-$CI_JOB_ID"
+    extra-needs-jobs:
       description: "Artifact job list"
       type: array
       default: []
@@ -64,6 +68,7 @@ variables:
   AUTO_TAG_VERSION_PREFIX: $[[ inputs.auto-tag-version-prefix ]]
   AUTO_TAG_VERSION_MAJOR: $[[ inputs.auto-tag-version-major ]]
   AUTO_TAG_VERSION_MINOR: $[[ inputs.auto-tag-version-minor ]]
+  ARTIFACTS_DIR: $[[ inputs.artifacts-dir | expand_vars ]]
 
 stages:
   - auto-merge
@@ -373,7 +378,6 @@ stages:
 .gitlab-api-release: |
     create_release() {
         local token="${1:?Не передан токен авторизации}"
-        local ARTIFACTS_DIR="$2"
     
         # Инициализация базового JSON релиза
         RELEASE_JSON=$(jq -n \
@@ -389,7 +393,9 @@ stages:
         RELEASE_JSON=$(add_docker_assets "$RELEASE_JSON")
     
         # Добавляем артефакты если есть
-        RELEASE_JSON=$(add_artifact_assets "$RELEASE_JSON" "$ARTIFACTS_DIR")
+        if [ -n "$ARTIFACTS_DIR" ]; then
+            RELEASE_JSON=$(add_artifact_assets "$RELEASE_JSON" "$ARTIFACTS_DIR")
+        fi
     
         # Создаем релиз через GitLab API
         local API_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases"
@@ -557,7 +563,7 @@ stages:
   needs:
     - job: "auto-merge$[[ inputs.job-prefix | expand_vars ]]"
       optional: true
-    - $[[ inputs.dependencies-jobs ]]
+    - $[[ inputs.extra-needs-jobs ]]
   before_script:
     - !reference [ .install-utility ]
     - !reference [ .gitlab-api-tags ]
@@ -575,9 +581,7 @@ stages:
   needs:
     - job: "auto-create-TAG$[[ inputs.job-prefix | expand_vars ]]"
       optional: true
-    - $[[ inputs.dependencies-jobs ]] 
-  dependencies:
-    - $[[ inputs.dependencies-jobs ]]
+    - $[[ inputs.extra-needs-jobs ]]
   before_script:
     - !reference [ .install-utility ]
     - !reference [ .gitlab-api-release ]
