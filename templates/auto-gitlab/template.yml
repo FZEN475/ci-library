@@ -351,7 +351,7 @@ stages:
     else
       patch=$(get_patch_from_tag "$(echo "$LAST_TAG" | jq -r '.name')")
       patch=$((patch + 1))
-      ref=$(echo "$LAST_TAG" | jq -r '.commit.id')
+      ref="$CI_COMMIT_SHA"
     fi
 
     # Формируем имя нового тега
