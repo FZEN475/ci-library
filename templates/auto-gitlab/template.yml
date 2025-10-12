@@ -390,7 +390,7 @@ stages:
         )
     
         # Добавляем docker ассеты если есть
-        RELEASE_JSON=$(add_docker_assets "$RELEASE_JSON")
+        # RELEASE_JSON=$(add_docker_assets "$RELEASE_JSON")
     
         # Добавляем артефакты если есть
         if [ -n "$ARTIFACTS_DIR" ]; then
