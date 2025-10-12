@@ -38,6 +38,7 @@ test-assets:
       paths:
         - "$ARTIFACTS_DIR"
   script:
+    - mkdir -p "$ARTIFACTS_DIR"
     - echo "Test" > "$ARTIFACTS_DIR/test.txt"
     - |
       {
