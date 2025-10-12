@@ -571,6 +571,7 @@ stages:
       when: on_success
     - when: never
 
+
 "auto-release$[[ inputs.job-prefix | expand_vars ]]":
   stage: auto-release
   extends: [ .package-cache ]
@@ -579,8 +580,8 @@ stages:
   before_script:
     - !reference [ .install-utility ]
     - !reference [ .gitlab-api-release ]
-  script:
-    - create_release "$AUTO_GITLAB_TOKEN"
+  script: 
+    - create_release "$CI_JOB_TOKEN"
   rules:
     - !reference [.tags-only-pattern, rules]
     - if: '"$[[ inputs.auto-release ]]" == "true"'
