@@ -371,84 +371,110 @@ stages:
  
 
 .gitlab-api-release: |
-  create_release_with_artifacts() {
-    local token="${1:?Не передан токен авторизации}"
-    local ARTIFACTS_DIR="$2"
-
-    # Данные релиза
-    RELEASE_JSON=$(jq -n \
-        --arg name "Release $CI_COMMIT_TAG" \
-        --arg tag_name "$CI_COMMIT_TAG" \
-        --arg description "Automated release for tag $CI_COMMIT_TAG" \
-        '{name: $name, tag_name: $tag_name, description: $description, assets: {links: []}}'
-    )
-
-    # --- Проверяем docker.env ---
-    if [ -f "docker.env" ]; then
-        log_info "🐳 Found docker.env — adding docker image info to release assets"
-        # Загружаем переменные из docker.env
-        source docker.env
-        
-        # Добавляем docker_image как ссылку
-        RELEASE_JSON=$(echo "$RELEASE_JSON" | jq \
-            --arg name "docker_image" \
-            --arg url "$docker_image" \
-            --arg filepath "/docker_image" \
-            '.assets.links += [{"name": $name, "url": $url, "link_type": "image", "filepath": $filepath}]'
+    create_release() {
+        local token="${1:?Не передан токен авторизации}"
+        local ARTIFACTS_DIR="$2"
+    
+        # Инициализация базового JSON релиза
+        RELEASE_JSON=$(jq -n \
+            --arg name "Release $CI_COMMIT_TAG" \
+            --arg tag_name "$CI_COMMIT_TAG" \
+            --arg description "Automated release for tag $CI_COMMIT_TAG" \
+            '{name: $name, tag_name: $tag_name, description: $description, assets: {links: []}}'
         )
-        
-        # Добавляем docker_digest как ссылку
-        RELEASE_JSON=$(echo "$RELEASE_JSON" | jq \
-            --arg name "docker_digest" \
-            --arg url "$docker_image_digest" \
-            --arg filepath "/docker_digest" \
-            '.assets.links += [{"name": $name, "url": $url, "link_type": "image", "filepath": $filepath}]'
-        )
-    else
-        log_info "⚠️ docker.env not found — skipping docker info"
-    fi
+    
+        # Добавляем docker ассеты если есть
+        RELEASE_JSON=$(add_docker_assets "$RELEASE_JSON")
+    
+        # Добавляем артефакты если есть
+        RELEASE_JSON=$(add_artifact_assets "$RELEASE_JSON" "$ARTIFACTS_DIR")
+    
+        # Создаем релиз через GitLab API
+        local API_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases"
+    
+        curl -f -X POST \
+          -H "Authorization: Bearer ${token}" \
+          -H "Content-Type: application/json" \
+          -d "${RELEASE_JSON}" \
+          "$API_URL"
+    }
 
-
-    # Если есть артефакты, добавляем их как links
-    if [ -d "$ARTIFACTS_DIR" ] && [ "$(ls -A "$ARTIFACTS_DIR" 2>/dev/null)" ]; then
-        log_info "📦 Found artifact directories — preparing assets..."
-
-        for package_dir in "$ARTIFACTS_DIR"/*; do
-            [ -d "$package_dir" ] || continue
-            local PACKAGE_NAME
-            PACKAGE_NAME=$(basename "$package_dir")
-            log_info "📂 Processing package: $PACKAGE_NAME"
-
-            for file in "$package_dir"/*; do
-                [ -f "$file" ] || continue
-                local filename
-                filename=$(basename "$file")
-                url="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/$PACKAGE_NAME/$VERSION/$filename"
-
-                log_info "🔗 Adding asset link for $PACKAGE_NAME → $filename"
-                RELEASE_JSON=$(echo "$RELEASE_JSON" | jq \
-                    --arg name "$PACKAGE_NAME/$filename" \
-                    --arg url "$url" \
-                    --arg filepath "/$filename" \
-                    '.assets.links += [{"name": $name, "url": $url, "link_type": "package", "filepath": $filepath}]'
-                )
-            done
-        done
-    else
-        log_info "⚠️ No artifacts found — release will be created without assets."
-    fi
-
-    # URL GitLab API
-    local API_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases"
+    # Вспомогательная функция для добавления одной ссылки в assets.links
+    add_asset_link() {
+        local release_json="$1"
+        local name="$2"
+        local url="$3"
+        local link_type="$4"
+        local filepath="$5"
   
-    curl -f -X POST \
-      -H "Authorization: Bearer ${token}" \
-      -H "Content-Type: application/json" \
-      -d "${RELEASE_JSON}" \
-      "$API_URL"
-  }
+        echo "$release_json" | jq \
+          --arg name "$name" \
+          --arg url "$url" \
+          --arg link_type "${link_type:-package}" \
+          --arg filepath "${filepath:-/$name}" \
+          '.assets.links += [{"name": $name, "url": $url, "link_type": $link_type, "filepath": $filepath}]'
+    }
+
+    # Функция для добавления docker ассетов
+    add_docker_assets() {
+        local release_json="$1"
+  
+        # Загружаем docker.env если существует
+        if [ -f "docker.env" ]; then
+            log_info "🐳 Loading docker.env"
+            source docker.env
+        fi
+  
+        # Проверяем, что обе переменные существуют и не пустые
+        if [ -n "${docker_image:-}" ] && [ -n "${docker_image_digest:-}" ]; then
+            log_info "🐳 Adding docker image info to release assets"
+  
+            # Добавляем docker_image как ссылку
+            release_json=$(add_asset_link "$release_json" "${CI_PROJECT_PATH_SLUG}" "$docker_image" "image" "/${CI_PROJECT_PATH_SLUG}")
+  
+            # Добавляем docker_digest как ссылку
+            release_json=$(add_asset_link "$release_json" "${CI_PROJECT_PATH_SLUG}-digest" "$docker_image_digest" "image" "/${CI_PROJECT_PATH_SLUG}-digest")
+        else
+            log_info "⚠️ Docker variables not found or incomplete — skipping docker info"
+            log_info "   docker_image: ${docker_image:-[empty]}"
+            log_info "   docker_image_digest: ${docker_image_digest:-[empty]}"
+        fi
+  
+        echo "$release_json"
+    }
 
 
+
+    # Функция для добавления артефактов
+    add_artifact_assets() {
+        local release_json="$1"
+        local artifacts_dir="$2"
+  
+        if [ -d "$artifacts_dir" ] && [ "$(ls -A "$artifacts_dir" 2>/dev/null)" ]; then
+            log_info "📦 Found artifact directories — preparing assets..."
+  
+            for package_dir in "$artifacts_dir"/*; do
+                [ -d "$package_dir" ] || continue
+                local PACKAGE_NAME
+                PACKAGE_NAME=$(basename "$package_dir")
+                log_info "📂 Processing package: $PACKAGE_NAME"
+  
+                for file in "$package_dir"/*; do
+                    [ -f "$file" ] || continue
+                    local filename
+                    filename=$(basename "$file")
+                    url="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/$PACKAGE_NAME/$VERSION/$filename"
+  
+                    log_info "🔗 Adding asset link for $PACKAGE_NAME → $filename"
+                    release_json=$(add_asset_link "$release_json" "$PACKAGE_NAME/$filename" "$url" "package" "/$filename")
+                done
+            done
+        else
+            log_info "⚠️ No artifacts found — release will be created without assets."
+        fi
+  
+        echo "$release_json"
+    }
 
 
 "auto-rebase-source-branch$[[ inputs.job-prefix | expand_vars ]]":
@@ -551,13 +577,14 @@ stages:
   needs:
     - job: "auto-create-TAG$[[ inputs.job-prefix | expand_vars ]]"
       optional: true
+    - $[[ inputs.dependencies-jobs ]] 
   dependencies:
     - $[[ inputs.dependencies-jobs ]]
   before_script:
     - !reference [ .install-utility ]
     - !reference [ .gitlab-api-release ]
   script:
-    - create_release_with_artifacts "$AUTO_GITLAB_TOKEN"
+    - create_release "$AUTO_GITLAB_TOKEN"
   rules:
     - !reference [.tags-only-pattern, rules]
     - if: '"$[[ inputs.auto-release ]]" == "true"'

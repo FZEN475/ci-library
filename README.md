@@ -1,4 +1,4 @@
-# ci-library1
+# ci-library
 ## Description
 
 Библиотека ci для gitlab.
