@@ -38,6 +38,7 @@ test-assets:
       paths:
         - "$ARTIFACTS_DIR"
   script:
+    - echo "Test" > "$ARTIFACTS_DIR/test.txt"
     - |
       {
         echo "docker_image=docker_image"
@@ -46,7 +47,6 @@ test-assets:
         echo "docker_tag=docker_tag"
         echo "docker_digest=docker_digest"
       } > docker.env
-    - publish_extra_tags
   artifacts:
     reports:
       dotenv:
