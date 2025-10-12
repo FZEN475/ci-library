@@ -51,7 +51,7 @@ spec:
     artifacts-dir:
       description: "Directory with artifacts"
       type: string
-      default: "artifacts-$CI_PROJECT_ID-$CI_JOB_ID"
+      default: "artifacts-$CI_PROJECT_ID-$CI_COMMIT_SHORT_SHA"
     extra-needs-jobs:
       description: "Artifact job list"
       type: array
@@ -558,12 +558,8 @@ stages:
     - when: never
 
 "auto-create-TAG$[[ inputs.job-prefix | expand_vars ]]":
-  stage: auto-merge
+  stage: auto-release
   extends: [ .package-cache ]
-  needs:
-    - job: "auto-merge$[[ inputs.job-prefix | expand_vars ]]"
-      optional: true
-    - $[[ inputs.extra-needs-jobs ]]
   before_script:
     - !reference [ .install-utility ]
     - !reference [ .gitlab-api-tags ]
@@ -579,8 +575,6 @@ stages:
   stage: auto-release
   extends: [ .package-cache ]
   needs:
-    - job: "auto-create-TAG$[[ inputs.job-prefix | expand_vars ]]"
-      optional: true
     - $[[ inputs.extra-needs-jobs ]]
   before_script:
     - !reference [ .install-utility ]
