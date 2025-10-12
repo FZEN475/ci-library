@@ -581,7 +581,7 @@ stages:
     - !reference [ .install-utility ]
     - !reference [ .gitlab-api-release ]
   script: 
-    - create_release "$CI_JOB_TOKEN"
+    - create_release "$AUTO_GITLAB_TOKEN"
   rules:
     - !reference [.tags-only-pattern, rules]
     - if: '"$[[ inputs.auto-release ]]" == "true"'
