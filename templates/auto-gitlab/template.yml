@@ -580,6 +580,10 @@ stages:
 "auto-release$[[ inputs.job-prefix | expand_vars ]]":
   stage: auto-release
   extends: [ .package-cache ]
+  cache:
+    - key: "$ARTIFACTS_DIR"
+      paths:
+        - "$ARTIFACTS_DIR"
   needs:
     - $[[ inputs.extra-needs-jobs ]]
   before_script:

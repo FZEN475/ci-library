@@ -34,7 +34,7 @@ stages:
 test-assets:
   stage: auto-merge
   cache:
-    - key: test-assets
+    - key: "$ARTIFACTS_DIR"
       paths:
         - "$ARTIFACTS_DIR"
   script:
@@ -55,7 +55,7 @@ test-assets:
 
 
 
- 
+
 
 
 #spec:
