@@ -386,7 +386,7 @@ stages:
             --arg desc_line1 "Automated release for tag $CI_COMMIT_TAG  " \
             --arg desc_line2 "[Последний релиз](${CI_PROJECT_URL}/-/releases/permalink/latest)  " \
             --arg desc_line3 "[Пример ссылки на последнюю версию файла](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads/direct_asset_path)  " \
-            '{name: $name, tag_name: $tag_name, description: "\($desc_line1)\n\($desc_line2)\n\($desc_line3)", assets: {links: []}}'
+            '{name: $name, tag_name: $tag_name, description: "$desc_line1\n$desc_line2\n$desc_line3", assets: {links: []}}'
         )
     
         # Добавляем docker ассеты если есть
