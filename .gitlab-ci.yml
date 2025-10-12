@@ -18,6 +18,8 @@ include:
       auto-tag-version-minor: 4
       
       auto-release: true
+      extra-needs-jobs:
+        - job: test-assets
 
 variables:
   CI_DEBUG_TRACE: "true"
@@ -29,9 +31,26 @@ stages:
   - auto-release
     
 
-
-
-
+test-assets:
+  stage: auto-merge
+  cache:
+    - key: test-assets
+      paths:
+        - "$ARTIFACTS_DIR"
+  script:
+    - |
+      {
+        echo "docker_image=docker_image"
+        echo "docker_image_digest=docker_image_digest"
+        echo "docker_repository=docker_repository"
+        echo "docker_tag=docker_tag"
+        echo "docker_digest=docker_digest"
+      } > docker.env
+    - publish_extra_tags
+  artifacts:
+    reports:
+      dotenv:
+        - docker.env
 
 
 
