@@ -413,14 +413,14 @@ stages:
         local name="$2"
         local url="$3"
         local link_type="$4"
-        local filepath="$5"
+        local direct_asset_path="$5"
   
         echo "$release_json" | jq \
           --arg name "$name" \
           --arg url "$url" \
           --arg link_type "${link_type:-package}" \
-          --arg filepath "${filepath:-/$name}" \
-          '.assets.links += [{"name": $name, "url": $url, "link_type": $link_type, "filepath": $filepath}]'
+          --arg direct_asset_path "${direct_asset_path:-/$name}" \
+          '.assets.links += [{"name": $name, "url": $url, "link_type": $link_type, "direct_asset_path": $direct_asset_path}]'
     }
 
     # Функция для добавления docker ассетов
