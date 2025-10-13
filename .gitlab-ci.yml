@@ -195,9 +195,9 @@ release_job:
       assets_list=$({
           for var_name in $assets; do
               eval "value=\"\$$var_name\""
-              echo "$value" | jq -c .
+              echo "$value" 
           done
-      } | jq -s '.')
+      })
     - echo "$assets_list"
     - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
     - |
