@@ -152,10 +152,10 @@ release_job:
     - |
       echo "$test_tag"
     - |
-      local desc="Automated release for tag $CI_COMMIT_TAG
-      [Последний релиз](${CI_PROJECT_URL}/-/releases/permalink/latest)
-      [Пример ссылки на последнюю версию файла](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads/direct_asset_path)
-      "
+      desc=""
+      desc+="Automated release for tag $test_tag"$'\n'
+      desc+="[Последний релиз](${CI_PROJECT_URL}/-/releases/permalink/latest)"$'\n'
+      desc+="[Пример ссылки на последнюю версию файла](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads/direct_asset_path)"$'\n'
     - |
       glab release create "$test_tag" --name "Release $test_tag" --notes "$desc"
 #  release:
