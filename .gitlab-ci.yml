@@ -144,8 +144,8 @@ package-example:
     - !reference [ .install-utility ]
   parallel:
     matrix:
-      - PACKAGE_FILE: "test/file1"
-      - PACKAGE_FILE: "test/file2"
+      - PACKAGE_FILE: "package/file1"
+      - PACKAGE_FILE: "package/file2"
   script:
     - |
       {
@@ -163,13 +163,15 @@ docker-example:
     - !reference [ .install-utility ]
   parallel:
     matrix:
-      - DOCKER_FILE: "test/Dockerfile1"
-      - DOCKER_FILE: "test/Dockerfile2"
+      - DOCKER_REPO: "${CI_REGISTRY}/${CI_PROJECT_PATH}/example_1"
+        DOCKER_TAG: "0.0.1"
+      - DOCKER_REPO: "${CI_REGISTRY}/${CI_PROJECT_PATH}/example_2"
+        DOCKER_TAG: "0.0.1"
   script:
     - |
       {
-        echo "release_docker_image=$DOCKER_FILE"
-        echo "release_docker_repository=${CI_SERVER_URL}/${DOCKER_FILE}"
+        echo "release_docker_repository=${DOCKER_REPO}"
+        echo "release_docker_tag=${DOCKER_TAG}"
       } > after_script.env
 
 
