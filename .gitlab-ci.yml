@@ -199,7 +199,7 @@ release_job:
               echo "$value" | jq -r '.'
           done
       } | jq -s '.' )
-      echo "$assets_list"
+    - echo "$assets_list"
     - echo "$assets_list" | jq '.'
     - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
     - |
