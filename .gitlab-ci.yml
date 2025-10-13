@@ -53,6 +53,9 @@
 #      dotenv:
 #        - docker.env
 
+include:
+  - local: 'templates/-1-common-rules/template.yml'
+
 stages:
   - release
 
@@ -137,7 +140,9 @@ stages:
 release_job:
   stage: release
   image: registry.gitlab.com/gitlab-org/cli:latest
+  extends: [ .package-cache ]
   before_script:
+    - !reference [ .install-utility ]
     - !reference [ .gitlab-api-tags-test ]
     - get_next_tag "$CI_JOB_TOKEN"
 #  rules:
