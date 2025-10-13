@@ -153,11 +153,11 @@ assets_generator:
     - |
       {
         echo release_asset_${CI_NODE_INDEX}="$DOCKER_FILE"
-      } > docker.env
+      } > release_asset.env
   artifacts:
     reports:
       dotenv:
-        - docker.env
+        - release_asset.env
 
 release_job:
   stage: release
@@ -181,8 +181,10 @@ release_job:
       EOF
     - ls -all ./
     - cat ./desc.md
+    - set | awk -F= '/^release_asset_/ {print $1}'
     - |
       # Перебираем переменные с префиксом release_asset_
+      
       for var_name in $(set | awk -F= '/^release_asset_/ {print $1}'); do
           value="${!var_name}"
           echo "Обрабатываем: $var_name = $value"
