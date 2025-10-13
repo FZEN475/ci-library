@@ -112,8 +112,12 @@ stages:
     : "${CI_DEFAULT_BRANCH:?Не задана переменная CI_DEFAULT_BRANCH}"
   
     # Получаем теги с нужным мажором и минором, отсортированные по версии (desc)
-    TAGS_JSON=$(api_get_tags "$token" "${AUTO_TAG_VERSION_PREFIX}${AUTO_TAG_VERSION_MAJOR}.${AUTO_TAG_VERSION_MINOR}." | tr -d '\r' )
-  
+    if [ -n $AUTO_TAG_VERSION_PREFIX && -n $AUTO_TAG_VERSION_MAJOR ]
+        TAGS_JSON=$(api_get_tags "$token" "${AUTO_TAG_VERSION_PREFIX}${AUTO_TAG_VERSION_MAJOR}.${AUTO_TAG_VERSION_MINOR}." | tr -d '\r' )
+    else
+        TAGS_JSON=$(api_get_tags "$token" "" | tr -d '\r' )
+    fi
+    
     printf '%s\n' "$TAGS_JSON" | jq .
   
     LAST_TAG=$(get_last_release_tag "$TAGS_JSON")
