@@ -375,115 +375,47 @@ stages:
   }
  
 
-.gitlab-api-release: |
-    create_release() {
-        local token="${1:?Не передан токен авторизации}"
-  
-        local desc="Automated release for tag $CI_COMMIT_TAG
-    [Последний релиз](${CI_PROJECT_URL}/-/releases/permalink/latest)
-    [Пример ссылки на последнюю версию файла](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads/direct_asset_path)
-    "
-    
-        # Инициализация базового JSON релиза
-        RELEASE_JSON=$(jq -n \
-            --arg name "Release $CI_COMMIT_TAG" \
-            --arg tag_name "$CI_COMMIT_TAG" \
-            --arg description "$desc" \
-            '{name: $name, tag_name: $tag_name, description: $description, assets: {links: []}}'
+
+.release-docker-template:
+  after_script:
+    - source release_after_script.env
+    - NORMALIZED_CI_JOB_NAME_SLUG=$(echo "$CI_JOB_NAME_SLUG" | sed 's/[^a-zA-Z0-9_]/_/g')
+    - |
+      release_notes_json=$(jq -n \
+        --arg head "#### Доступные Docker образы для $CI_COMMIT_TAG  " \
+        --arg image "- ${release_docker_repository}:${release_docker_tag}" \
+        --arg latest "- ${release_docker_repository}:latest" \
+        '{"head": $head, "image": $image, "latest": $latest}' | jq -R -s '.'
         )
-    
-        # Добавляем docker ассеты если есть
-        # RELEASE_JSON=$(add_docker_assets "$RELEASE_JSON")
-        ls -all ./
-        ls -all "$ARTIFACTS_DIR"
-        
-        # Добавляем артефакты если есть
-        if [ -n "$ARTIFACTS_DIR" ]; then
-            RELEASE_JSON=$(add_artifact_assets "$RELEASE_JSON" "$ARTIFACTS_DIR")
-        fi
-    
-        # Создаем релиз через GitLab API
-        local API_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases"
-    
-        curl -f -X POST \
-          -H "Authorization: Bearer ${token}" \
-          -H "Content-Type: application/json" \
-          -d "${RELEASE_JSON}" \
-          "$API_URL"
-    }
+    - |
+      {
+        echo "release_notes_${NORMALIZED_CI_JOB_NAME_SLUG}=$release_notes_json"
+      } > release_notes.env
+  artifacts:
+    reports:
+      dotenv:
+        - release_notes.env
 
-    # Вспомогательная функция для добавления одной ссылки в assets.links
-    add_asset_link() {
-        local release_json="$1"
-        local name="$2"
-        local url="$3"
-        local link_type="$4"
-        local direct_asset_path="$5"
-  
-        echo "$release_json" | jq \
-          --arg name "$name" \
-          --arg url "$url" \
-          --arg link_type "${link_type:-package}" \
-          --arg direct_asset_path "${direct_asset_path:-/$name}" \
-          '.assets.links += [{"name": $name, "url": $url, "link_type": $link_type, "direct_asset_path": $direct_asset_path}]'
-    }
-
-    # Функция для добавления docker ассетов
-    add_docker_assets() {
-        local release_json="$1"
-  
-        # Загружаем docker.env если существует
-        if [ -f "docker.env" ]; then
-            log_info "🐳 Loading docker.env"
-            source docker.env
-        fi
-  
-        # Проверяем, что обе переменные существуют и не пустые
-        if [ -n "${docker_image:-}" ] && [ -n "${docker_image_digest:-}" ]; then
-            log_info "🐳 Adding docker image info to release assets"
-  
-            # Добавляем docker_image как ссылку
-            release_json=$(add_asset_link "$release_json" "$docker_image" "${CI_PROJECT_URL}/container_registry" "image" "/${CI_PROJECT_PATH_SLUG}")
-  
-        else
-            log_info "⚠️ Docker variables not found or incomplete — skipping docker info"
-            log_info "   docker_image: ${docker_image:-[empty]}"
-            log_info "   docker_image_digest: ${docker_image_digest:-[empty]}"
-        fi
-  
-        echo "$release_json"
-    }
-
-    # Функция для добавления артефактов
-    add_artifact_assets() {
-        local release_json="$1"
-        local artifacts_dir="$2"
-  
-        if [ -d "$artifacts_dir" ] && [ "$(ls -A "$artifacts_dir" 2>/dev/null)" ]; then
-            log_info "📦 Found artifact directories — preparing assets..."
-  
-            for package_dir in "$artifacts_dir"/*; do
-                [ -d "$package_dir" ] || continue
-                local PACKAGE_NAME
-                PACKAGE_NAME=$(basename "$package_dir")
-                log_info "📂 Processing package: $PACKAGE_NAME"
-  
-                for file in "$package_dir"/*; do
-                    [ -f "$file" ] || continue
-                    local filename
-                    filename=$(basename "$file")
-                    url="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/$PACKAGE_NAME/$VERSION/$filename"
-  
-                    log_info "🔗 Adding asset link for $PACKAGE_NAME → $filename"
-                    release_json=$(add_asset_link "$release_json" "$PACKAGE_NAME/$filename" "$url" "package" "/$filename")
-                done
-            done
-        else
-            log_info "⚠️ No artifacts found — release will be created without assets."
-        fi
-  
-        echo "$release_json"
-    }
+.release-package-template:
+  after_script:
+    - source release_after_script.env
+    - NORMALIZED_CI_JOB_NAME_SLUG=$(echo "$CI_JOB_NAME_SLUG" | sed 's/[^a-zA-Z0-9_]/_/g')
+    - |
+      asset_json=$(jq -n \
+      --arg name "$release_package_name" \
+      --arg url "$release_package_url" \
+      --arg link_type "$release_package_link_type" \
+      --arg direct_asset_path "/${release_package_direct_asset_path}" \
+      '{"name": $name, "url": $url, "link_type": $link_type, "direct_asset_path": $direct_asset_path}' | jq -R -s '.'
+      )
+    - |
+      {
+        echo release_asset_${NORMALIZED_CI_JOB_NAME_SLUG}=$asset_json
+      } > release_asset.env
+  artifacts:
+    reports:
+      dotenv:
+        - release_asset.env
 
 
 "auto-rebase-source-branch$[[ inputs.job-prefix | expand_vars ]]":
@@ -537,6 +469,9 @@ stages:
 
 "auto-merge$[[ inputs.job-prefix | expand_vars ]]":
   stage: auto-merge
+  retry: 
+    max: 2
+    when: script_failure
   extends: [ .package-cache ]
   needs:
     - job: "auto-rebase-source-branch$[[ inputs.job-prefix | expand_vars ]]"
@@ -576,30 +511,64 @@ stages:
       when: on_success
     - when: never
 
-
 "auto-release$[[ inputs.job-prefix | expand_vars ]]":
   stage: auto-release
+  image: registry.gitlab.com/gitlab-org/cli:latest
   extends: [ .package-cache ]
-  cache:
-    - key: "$ARTIFACTS_DIR"
-      paths:
-        - "$ARTIFACTS_DIR"
-  needs:
-    - $[[ inputs.extra-needs-jobs ]]
   before_script:
     - !reference [ .install-utility ]
-    - !reference [ .gitlab-api-release ]
-  script: 
-    - create_release "$CI_JOB_TOKEN"
+  script:
+    - |
+      cat > desc.md <<EOF
+      Автоматический релиз для $CI_COMMIT_TAG  
+      [Последний релиз](${CI_PROJECT_URL}/-/releases/permalink/latest)    
+      EOF
+    - |
+      release_notes_raw=$(env | awk -F= '/^release_notes_/ {print $1}')
+      log_info "env list release_notes_* - $release_notes_raw"
+      if [ -n "$release_notes_raw" ]; then
+        echo "---  " >> desc.md
+        echo "### Docker образы  " >> desc.md
+        for release_note_name in $release_notes_raw; do
+            eval "release_note_string=\$$release_note_name"
+            echo "$release_note_string" | jq -r 'fromjson | .head // empty' >> desc.md
+            echo "$release_note_string" | jq -r 'fromjson | .image // empty' >> desc.md
+            echo "$release_note_string" | jq -r 'fromjson | .latest // empty' >> desc.md
+        done
+      fi
+    - |
+      assets_list_raw=$(env | awk -F= '/^release_asset_/ {print $1}')
+      log_info "env list release_asset_* - $assets_list_raw"
+      if [ -n "$release_notes_list" ]; then
+        assets_list_json=$({
+            for asset_value_name in $assets_list_raw; do
+                eval "asset_value_string=\$$asset_value_name"
+                echo "$asset_value_string" | jq -r '.'
+            done
+        } | jq -s '.' )
+      else
+        assets_list_json="[]"
+      fi
+    - |
+      log_info "Notes: $(cat desc.md)"
+      log_info "Assets: $assets_list_json"
+    - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
+    - |
+      if echo "$assets_list_json" | jq -e 'length > 0' > /dev/null; then
+        echo "---  " >> desc.md
+        echo "### Последние версии пакетов  " >> desc.md
+        echo "$assets_list_json" | jq -r '.[] | "- [\(.name)](\(env.CI_PROJECT_URL)/-/releases/permalink/latest/downloads\(.direct_asset_path))"' >> desc.md
+      
+        glab release create "$CI_COMMIT_TAG" --name "Release $CI_COMMIT_TAG" -F desc.md --ref "$CI_COMMIT_SHA" \
+          --assets-links="$assets_list_json"
+      else
+        glab release create "$CI_COMMIT_TAG" --name "Release $CI_COMMIT_TAG" -F desc.md --ref "$CI_COMMIT_SHA"
+      fi
   rules:
-    - !reference [.tags-only-pattern, rules]
+    - !reference [ .tags-only-pattern, rules ]
     - if: '"$[[ inputs.auto-release ]]" == "true"'
       when: on_success
     - when: never
-
-
-
-
 
 
 
