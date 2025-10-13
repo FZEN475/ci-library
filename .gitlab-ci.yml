@@ -223,12 +223,12 @@ release_job:
       if [ -n "$release_notes_list" ]; then
         echo "---  " >> desc.md
         echo "### Docker образы  " >> desc.md
-        for release_note_str in $release_notes_list; do
-              echo "- \$$release_note_str" >> desc.md
+        for release_note_name in $release_notes_list; do
+            eval "release_note_string=\$$release_note_name"
+            echo "- $release_note_string" >> desc.md
         done
       fi
     - |
-      $assets_list_json="[]"
       assets_list_raw=$(env | awk -F= '/^release_asset_/ {print $1}')
       if [ -n "$release_notes_list" ]; then
         assets_list_json=$({
@@ -237,6 +237,8 @@ release_job:
                 echo "$asset_value_string" | jq -r '.'
             done
         } | jq -s '.' )
+      else
+        assets_list_json="[]"
       fi
     - echo "$assets_list_json"
     - if echo "$assets_list_json" | jq -e 'length > 0' > /dev/null; then
