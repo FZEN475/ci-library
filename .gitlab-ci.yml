@@ -156,11 +156,12 @@ assets_generator:
       --arg url "$CI_PROJECT_URL" \
       --arg link_type "image" \
       --arg direct_asset_path "/${DOCKER_FILE}" \
-      '{"name": $name, "url": $url, "link_type": $link_type, "direct_asset_path": $direct_asset_path}'
+      '{"name": $name, "url": $url, "link_type": $link_type, "direct_asset_path": $direct_asset_path}' | jq -R -s '.'
       )
-      
+    - echo "$assets_json"
+    - |
       {
-        echo release_asset_${CI_NODE_INDEX}="$assets_json"
+        echo release_asset_${CI_NODE_INDEX}=$assets_json
       } > release_asset.env
   artifacts:
     reports:
@@ -193,7 +194,7 @@ release_job:
     - |
       # Перебираем переменные с префиксом release_asset_
       for var_name in "$assets"; do
-          value="${!var_name}"
+          value="$var_name"
           echo "Обрабатываем: $var_name = $value"
 
       done
