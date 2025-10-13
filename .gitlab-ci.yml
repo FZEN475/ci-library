@@ -220,19 +220,34 @@ release_job:
     - cat ./desc.md
     - |
       release_notes_list=$(env | awk -F= '/^release_notes_/ {print $1}')
-      for release_note_str in $release_notes_list; do
-            echo "$release_note_str" >> desc.md
-      done
+      if [ -n "$release_notes_list" ]; then
+        echo "---  " >> desc.md
+        echo "### Docker образы  " >> desc.md
+        for release_note_str in $release_notes_list; do
+              echo "- \$$release_note_str" >> desc.md
+        done
+      fi
     - |
+      $assets_list_json="[]"
       assets_list_raw=$(env | awk -F= '/^release_asset_/ {print $1}')
-      assets_list_json=$({
-          for asset_value_name in $assets_list_raw; do
-              eval "asset_value_string=\$$asset_value_name"
-              echo "$asset_value_string" | jq -r '.'
-          done
-      } | jq -s '.' )
+      if [ -n "$release_notes_list" ]; then
+        assets_list_json=$({
+            for asset_value_name in $assets_list_raw; do
+                eval "asset_value_string=\$$asset_value_name"
+                echo "$asset_value_string" | jq -r '.'
+            done
+        } | jq -s '.' )
+      fi
     - echo "$assets_list_json"
-    - echo "$assets_list_json" | jq '.'
+    - if echo "$assets_list_json" | jq -e 'length > 0' > /dev/null; then
+        echo "---  " >> desc.md
+        echo "### Список последних версий  " >> desc.md
+        echo "$json_data" | jq -c '.[]' | while read -r item; do
+            _name==$(echo "$item" | jq -r '.name')
+            direct_asset_path=$(echo "$item" | jq -r '.direct_asset_path')
+            echo "- [${_name}](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads${direct_asset_path})" >> desc.md
+        done
+      fi
     - |
       glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
       glab release create "$test_tag" --name "Release $test_tag" -F desc.md --ref "$CI_COMMIT_SHA" \
