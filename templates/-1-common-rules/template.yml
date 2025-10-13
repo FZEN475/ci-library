@@ -228,11 +228,12 @@
       
 .release-docker-template:
   after_script:
+    - NORMALIZED_CI_JOB_NAME_SLUG=$(echo "$CI_JOB_NAME_SLUG" | sed 's/[^a-zA-Z0-9_]/_/g')
     - |
       {
-        echo "release_notes_${CI_JOB_NAME_SLUG}_1_head=Docker image for tag $CI_COMMIT_TAG is now available"
-        echo "release_notes_${CI_JOB_NAME_SLUG}_2_image=$docker_image"
-        echo "release_notes_${CI_JOB_NAME_SLUG}_3_latest=${docker_repository}:latest"
+        echo "release_notes_${NORMALIZED_CI_JOB_NAME_SLUG}_1_head=Docker image for tag $CI_COMMIT_TAG is now available"
+        echo "release_notes_${NORMALIZED_CI_JOB_NAME_SLUG}_2_image=$docker_image"
+        echo "release_notes_${NORMALIZED_CI_JOB_NAME_SLUG}_3_latest=${docker_repository}:latest"
       } > release_notes
   artifacts:
     reports:
@@ -241,6 +242,7 @@
 
 .release-package-template:
   after_script:
+    - NORMALIZED_CI_JOB_NAME_SLUG=$(echo "$CI_JOB_NAME_SLUG" | sed 's/[^a-zA-Z0-9_]/_/g')
     - |
       asset_json=$(jq -n \
       --arg name "$release_package_name" \
@@ -251,7 +253,7 @@
       )
     - |
       {
-        echo release_asset_${CI_JOB_NAME_SLUG}=$asset_json
+        echo release_asset_${NORMALIZED_CI_JOB_NAME_SLUG}=$asset_json
       } > release_asset
   artifacts:
     reports:
