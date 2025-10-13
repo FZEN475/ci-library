@@ -527,6 +527,7 @@ stages:
       release_notes_raw=$(env | awk -F= '/^release_notes_/ {print $1}')
       log_info "env list release_notes_* - $release_notes_raw"
       if [ -n "$release_notes_raw" ]; then
+        echo "  " >> desc.md
         echo "---  " >> desc.md
         echo "### Docker образы  " >> desc.md
         for release_note_name in $release_notes_raw; do
@@ -555,6 +556,7 @@ stages:
     - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
     - |
       if echo "$assets_list_json" | jq -e 'length > 0' > /dev/null; then
+        echo "  " >> desc.md
         echo "---  " >> desc.md
         echo "### Последние версии пакетов  " >> desc.md
         echo "$assets_list_json" | jq -r '.[] | "- [\(.name)](\(env.CI_PROJECT_URL)/-/releases/permalink/latest/downloads\(.direct_asset_path))"' >> desc.md
