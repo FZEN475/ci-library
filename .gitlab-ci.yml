@@ -240,7 +240,8 @@ release_job:
         assets_list_json="[]"
       fi
     - echo "$assets_list_json"
-    - if echo "$assets_list_json" | jq -e 'length > 0' > /dev/null; then
+    - |
+      if echo "$assets_list_json" | jq -e 'length > 0' > /dev/null; then
         echo "---  " >> desc.md
         echo "### Список последних версий  " >> desc.md
         echo "$json_data" | jq -r '.[] | "- [\(.name)](\(env.CI_PROJECT_URL)/-/releases/permalink/latest/downloads\(.direct_asset_path))"' >> desc.md

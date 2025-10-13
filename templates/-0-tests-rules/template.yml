@@ -158,12 +158,11 @@ merge.only>merge.target-protect-only>>job:
     - !reference [.merge.only>merge.target-protect-only, rules]
     - when: always
 
-.tagged.only>push.not:
+.tagged.only:
   rules:
     - !reference [.tagged, only]
-    - !reference [.push, not]
 
-tagged.only>push.not>>job:
+tagged.only>>job:
   stage: commit-rules-test
   script:
     - echo "tagged.only>push.not>>job"
