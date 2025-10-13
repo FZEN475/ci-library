@@ -243,11 +243,7 @@ release_job:
     - if echo "$assets_list_json" | jq -e 'length > 0' > /dev/null; then
         echo "---  " >> desc.md
         echo "### Список последних версий  " >> desc.md
-        echo "$json_data" | jq -c '.[]' | while read -r item; do
-            _name=$(echo "$item" | jq -r '.name')
-            direct_asset_path=$(echo "$item" | jq -r '.direct_asset_path')
-            echo "- [${_name}](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads${direct_asset_path})" >> desc.md
-        done
+        echo "$json_data" | jq -r '.[] | "- [\(.name)](\(env.CI_PROJECT_URL)/-/releases/permalink/latest/downloads\(.direct_asset_path))"' >> desc.md
       fi
     - |
       glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
