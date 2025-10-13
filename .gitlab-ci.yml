@@ -21,8 +21,8 @@
 #      extra-needs-jobs:
 #        - job: test-assets
 #
-#variables:
-#  CI_DEBUG_TRACE: "true"
+variables:
+  CI_DEBUG_TRACE: "true"
 #
 #stages:
 #  - commit-rules-test
@@ -68,13 +68,6 @@ stages:
     : "${CI_PROJECT_ID:?Не задана переменная CI_PROJECT_ID}"
   
     local api_url="$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/tags"
-    
-    echo "curl -f -X GET \
-      -H \"Authorization: Bearer ${token}\" \
-      --data-urlencode \"order_by=version\" \
-      --data-urlencode \"sort=desc\" \
-      $( [ -n \"$search\" ] && echo \"--data-urlencode search=$search\" ) \
-      \"$api_url\""
     
     tag_list=$(curl -s -f -X GET \
       -H "Authorization: Bearer ${token}" \
