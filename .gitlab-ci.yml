@@ -117,7 +117,7 @@ stages:
     # Получаем теги с нужным мажором и минором, отсортированные по версии (desc)
     TAGS_JSON=$(api_get_tags "$token" "${AUTO_TAG_VERSION_PREFIX}${AUTO_TAG_VERSION_MAJOR}.${AUTO_TAG_VERSION_MINOR}." | tr -d '\r' )
   
-    printf '%s\n' "$TAGS_JSON" | jq .
+    # printf '%s\n' "$TAGS_JSON" | jq .
   
     LAST_TAG=$(get_last_release_tag "$TAGS_JSON")
 
