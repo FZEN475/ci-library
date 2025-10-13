@@ -181,20 +181,13 @@ release_job:
       EOF
     - ls -all ./
     - cat ./desc.md
-    - set | awk -F= '/^release_asset_/ {print $1}'
+    - assets=$(env | awk -F= '/^release_asset_/ {print $1}')
     - |
       # Перебираем переменные с префиксом release_asset_
-      
       for var_name in $(set | awk -F= '/^release_asset_/ {print $1}'); do
           value="${!var_name}"
           echo "Обрабатываем: $var_name = $value"
 
-          # Здесь ваша логика работы с переменной
-          # Например:
-          if [ -n "$value" ]; then
-              echo "  -> Файл: $value"
-              # export "$var_name"  # если нужно переэкспортировать
-          fi
       done
 #    - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
 #    - |
