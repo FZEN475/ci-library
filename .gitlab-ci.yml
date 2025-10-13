@@ -193,10 +193,10 @@ release_job:
     - assets=$(env | awk -F= '/^release_asset_/ {print $1}')
     - |
       assets_list=$({
-        for var_name in $assets; do
-        eval "value=\"\$$var_name\""
-        echo "$value"
-        done
+          for var_name in $assets; do
+              eval "value=\"\$$var_name\""
+              echo "$value" | jq .
+          done
       } | jq -s '.')
     - echo "$assets_list"
     - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
