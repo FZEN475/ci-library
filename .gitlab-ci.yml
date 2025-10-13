@@ -138,7 +138,6 @@ release_job:
   stage: release
   image: registry.gitlab.com/gitlab-org/cli:latest
   before_script:
-    - !reference [ .install-utility ]
     - !reference [ .gitlab-api-tags-test ]
     - echo get_next_tag "$CI_JOB_TOKEN"
 #  rules:
