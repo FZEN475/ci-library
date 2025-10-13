@@ -159,6 +159,7 @@ release_job:
       EOF
     - ls -all ./
     - cat ./desc.md
+    - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
     - |
       glab release create "$test_tag" --name "Release $test_tag" -F desc.md
 #  release:
