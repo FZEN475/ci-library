@@ -151,18 +151,19 @@ release_job:
   script:
     - |
       echo "$test_tag"
-    - git tag -n
-      
-      
-
-#      glab release create "$CI_COMMIT_TAG" --name "Release $CI_COMMIT_TAG" \
-#        --assets-links="[{\"name\":\"${DARWIN_AMD64_BINARY}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${DARWIN_AMD64_BINARY}\"},{\"name\":\"${LINUX_AMD64_BINARY}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_BINARY}\"}]"
+    - |
+      local desc="Automated release for tag $CI_COMMIT_TAG
+      [Последний релиз](${CI_PROJECT_URL}/-/releases/permalink/latest)
+      [Пример ссылки на последнюю версию файла](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads/direct_asset_path)
+      "
+    - |
+      glab release create "$test_tag" --name "Release $test_tag" --notes "$desc"
 #  release:
 #    tag_name: $CI_COMMIT_TAG
 #    name: 'Release $CI_COMMIT_TAG'
 #    description: 'Release created using the CLI.'
 
-
+#--assets-links="[{\"name\":\"${DARWIN_AMD64_BINARY}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${DARWIN_AMD64_BINARY}\"},{\"name\":\"${LINUX_AMD64_BINARY}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_BINARY}\"}]"
 
 #spec:
 #  inputs:
