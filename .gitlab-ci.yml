@@ -140,7 +140,7 @@ stages:
 assets_generator:
   stage: generator
   image: registry.gitlab.com/gitlab-org/cli:latest
-  extends: [ .package-cache ]
+  extends: [ .package-cache, .release-docker-template, .release-package-template ]
   before_script:
     - !reference [ .install-utility ]
   parallel:
@@ -148,26 +148,30 @@ assets_generator:
       - DOCKER_FILE: "dev-ansible/Dockerfile1"
       - DOCKER_FILE: "dev-ansible/Dockerfile2"
   script:
-    - |
-      echo release_asset_${CI_NODE_INDEX}="$DOCKER_FILE"
-    - |
-      assets_json=$(jq -n \
-      --arg name "$DOCKER_FILE" \
-      --arg url "$CI_PROJECT_URL" \
-      --arg link_type "image" \
-      --arg direct_asset_path "/${DOCKER_FILE}" \
-      '{"name": $name, "url": $url, "link_type": $link_type, "direct_asset_path": $direct_asset_path}' | jq -R -s '.'
-      )
-    - echo "$assets_json"
-    - echo "$assets_json" | jq -r '.'
-    - |
-      {
-        echo release_asset_${CI_NODE_INDEX}=$assets_json
-      } > release_asset.env
-  artifacts:
-    reports:
-      dotenv:
-        - release_asset.env
+    - release_package_name="$DOCKER_FILE"
+    - release_package_url="${CI_SERVER_URL}/$DOCKER_FILE"
+    - release_package_link_type="image"
+    - direct_asset_path="/$DOCKER_FILE"
+#    - |
+#      echo release_asset_${CI_NODE_INDEX}="$DOCKER_FILE"
+#    - |
+#      assets_json=$(jq -n \
+#      --arg name "$DOCKER_FILE" \
+#      --arg url "$CI_PROJECT_URL" \
+#      --arg link_type "image" \
+#      --arg direct_asset_path "/${DOCKER_FILE}" \
+#      '{"name": $name, "url": $url, "link_type": $link_type, "direct_asset_path": $direct_asset_path}' | jq -R -s '.'
+#      )
+#    - echo "$assets_json"
+#    - echo "$assets_json" | jq -r '.'
+#    - |
+#      {
+#        echo release_asset_${CI_NODE_INDEX}=$assets_json
+#      } > release_asset.env
+#  artifacts:
+#    reports:
+#      dotenv:
+#        - release_asset.env
 
 release_job:
   stage: release
@@ -191,25 +195,29 @@ release_job:
       EOF
     - ls -all ./
     - cat ./desc.md
-    - assets=$(env | awk -F= '/^release_asset_/ {print $1}')
     - |
-      assets_list=$({
-          for var_name in $assets; do
-              eval "value=\$$var_name"
-              echo "$value" | jq -r '.'
+      release_notes_list=$(env | awk -F= '/^release_notes_/ {print $1}')
+      for release_note_str in $release_notes_list; do
+            echo "$release_note_str" >> desc.md
+      done
+    - |
+      assets_list_raw=$(env | awk -F= '/^release_asset_/ {print $1}')
+      assets_list_json=$({
+          for asset_value_name in $assets_list_raw; do
+              eval "asset_value_string=\$$asset_value_name"
+              echo "$asset_value_string" | jq -r '.'
           done
       } | jq -s '.' )
-    - echo "$assets_list"
-    - echo "$assets_list" | jq '.'
-    - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
+    - echo "$assets_list_json"
+    - echo "$assets_list_json" | jq '.'
     - |
+      glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
       glab release create "$test_tag" --name "Release $test_tag" -F desc.md --ref "$CI_COMMIT_SHA" \
-        --assets-links="$assets_list"
+        --assets-links="$assets_list_json"
 #  release:
 #    tag_name: $CI_COMMIT_TAG
 #    name: 'Release $CI_COMMIT_TAG'
 #    description: 'Release created using the CLI.'
-
 
 
 #spec:
