@@ -130,10 +130,7 @@ stages:
     fi
 
     # Формируем имя нового тега
-    new_tag="${AUTO_TAG_VERSION_PREFIX}${AUTO_TAG_VERSION_MAJOR}.${AUTO_TAG_VERSION_MINOR}.${patch}"
-    log_info "Создаем тег: $new_tag (ref: $ref)"
-
-
+    echo "${AUTO_TAG_VERSION_PREFIX}${AUTO_TAG_VERSION_MAJOR}.${AUTO_TAG_VERSION_MINOR}.${patch}"
   }
 
 
@@ -144,12 +141,13 @@ release_job:
   before_script:
     - !reference [ .install-utility ]
     - !reference [ .gitlab-api-tags-test ]
-    - get_next_tag "$CI_JOB_TOKEN"
+    - export test_tag=get_next_tag "$CI_JOB_TOKEN"
+    - env
 #  rules:
 #    - if: $CI_COMMIT_TAG                  # Run this job when a tag is created manually
   script:
     - |
-      echo "123"
+      echo "$test_tag"
       
       
       
