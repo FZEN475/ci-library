@@ -152,11 +152,11 @@ release_job:
     - |
       echo "$test_tag"
     - |
-      desc.md << EOF
-          Automated release for tag $test_tag  
-          [Последний релиз](${CI_PROJECT_URL}/-/releases/permalink/latest)  
-          [Пример ссылки на последнюю версию файла](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads/direct_asset_path)  
-          EOF
+      cat > desc.md <<EOF
+      Automated release for tag $test_tag  
+      [Последний релиз](${CI_PROJECT_URL}/-/releases/permalink/latest)  
+      [Пример ссылки на последнюю версию файла](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads/direct_asset_path)  
+      EOF
     - ls -all ./
     - cat ./desc.md
     - |
