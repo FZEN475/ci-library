@@ -195,11 +195,12 @@ release_job:
     - |
       assets_list=$({
           for var_name in $assets; do
-              eval "value=\"\$$var_name\""
+              eval "value=\$$var_name"
               echo "$value" | jq -r '.'
           done
-      } )
-    - echo "$assets_list" | jq -r '.'
+      } | jq -s '.' )
+      echo "$assets_list"
+    - echo "$assets_list" | jq '.'
     - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
     - |
       glab release create "$test_tag" --name "Release $test_tag" -F desc.md --ref "$CI_COMMIT_SHA" \
