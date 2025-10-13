@@ -24,8 +24,6 @@ include:
 variables:
   CI_DEBUG_TRACE: "true"
 
-  
-
 stages:
   - commit-rules-test
   - combine-rules-test

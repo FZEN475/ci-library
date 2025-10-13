@@ -539,7 +539,7 @@ stages:
     - |
       assets_list_raw=$(env | awk -F= '/^release_asset_/ {print $1}')
       log_info "env list release_asset_* - $assets_list_raw"
-      if [ -n "$release_notes_list" ]; then
+      if [ -n "$assets_list_raw" ]; then
         assets_list_json=$({
             for asset_value_name in $assets_list_raw; do
                 eval "asset_value_string=\$$asset_value_name"
