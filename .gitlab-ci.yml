@@ -195,7 +195,7 @@ release_job:
       assets_list=$({
           for var_name in $assets; do
               eval "value=\"\$$var_name\""
-              echo "$value" | jq .
+              echo "$value" | jq -c .
           done
       } | jq -s '.')
     - echo "$assets_list"
