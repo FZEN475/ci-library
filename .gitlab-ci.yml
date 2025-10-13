@@ -60,6 +60,7 @@ include:
   - local: 'templates/-1-common-rules/template.yml'
 
 stages:
+  - generator
   - release
 
 .gitlab-api-tags-test: |
@@ -136,6 +137,18 @@ stages:
     echo "${AUTO_TAG_VERSION_PREFIX}${AUTO_TAG_VERSION_MAJOR}.${AUTO_TAG_VERSION_MINOR}.${patch}"
   }
 
+assets_generator:
+  stage: generator
+  image: registry.gitlab.com/gitlab-org/cli:latest
+  extends: [ .package-cache ]
+  before_script:
+    - !reference [ .install-utility ]
+  parallel:
+    matrix:
+      - DOCKER_FILE: "dev-ansible/Dockerfile"
+  script:
+    - |
+      export release_asset="$DOCKER_FILE"
 
 release_job:
   stage: release
@@ -159,9 +172,9 @@ release_job:
       EOF
     - ls -all ./
     - cat ./desc.md
-    - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
-    - |
-      glab release create "$test_tag" --name "Release $test_tag" -F desc.md --ref "$CI_COMMIT_SHA"
+#    - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
+#    - |
+#      glab release create "$test_tag" --name "Release $test_tag" -F desc.md --ref "$CI_COMMIT_SHA"
 #  release:
 #    tag_name: $CI_COMMIT_TAG
 #    name: 'Release $CI_COMMIT_TAG'
