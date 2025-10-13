@@ -151,8 +151,16 @@ assets_generator:
     - |
       echo release_asset_${CI_NODE_INDEX}="$DOCKER_FILE"
     - |
+      assets_json=$(jq -n \
+      --arg name "$DOCKER_FILE" \
+      --arg url "$CI_PROJECT_URL" \
+      --arg link_type "image" \
+      --arg direct_asset_path "/${DOCKER_FILE}" \
+      '{"name": $name, "url": $url, "link_type": $link_type, "direct_asset_path": $direct_asset_path}'
+      )
+      
       {
-        echo release_asset_${CI_NODE_INDEX}="$DOCKER_FILE"
+        echo release_asset_${CI_NODE_INDEX}="$assets_json"
       } > release_asset.env
   artifacts:
     reports:
@@ -184,11 +192,14 @@ release_job:
     - assets=$(env | awk -F= '/^release_asset_/ {print $1}')
     - |
       # Перебираем переменные с префиксом release_asset_
-      for var_name in $(set | awk -F= '/^release_asset_/ {print $1}'); do
+      for var_name in "$assets"; do
           value="${!var_name}"
           echo "Обрабатываем: $var_name = $value"
 
       done
+
+      
+
 #    - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
 #    - |
 #      glab release create "$test_tag" --name "Release $test_tag" -F desc.md --ref "$CI_COMMIT_SHA"
