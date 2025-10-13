@@ -149,7 +149,15 @@ assets_generator:
       - DOCKER_FILE: "dev-ansible/Dockerfile2"
   script:
     - |
-      export release_asset="$DOCKER_FILE"
+      echo release_asset_${CI_NODE_INDEX}="$DOCKER_FILE"
+    - |
+      {
+        echo release_asset_${CI_NODE_INDEX}="$DOCKER_FILE"
+      } > docker.env
+  artifacts:
+    reports:
+      dotenv:
+        - docker.env
 
 release_job:
   stage: release
@@ -173,6 +181,19 @@ release_job:
       EOF
     - ls -all ./
     - cat ./desc.md
+    - |
+      # Перебираем переменные с префиксом release_asset_
+      for var_name in $(set | awk -F= '/^release_asset_/ {print $1}'); do
+          value="${!var_name}"
+          echo "Обрабатываем: $var_name = $value"
+
+          # Здесь ваша логика работы с переменной
+          # Например:
+          if [ -n "$value" ]; then
+              echo "  -> Файл: $value"
+              # export "$var_name"  # если нужно переэкспортировать
+          fi
+      done
 #    - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
 #    - |
 #      glab release create "$test_tag" --name "Release $test_tag" -F desc.md --ref "$CI_COMMIT_SHA"
