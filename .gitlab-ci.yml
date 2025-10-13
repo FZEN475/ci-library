@@ -145,7 +145,8 @@ assets_generator:
     - !reference [ .install-utility ]
   parallel:
     matrix:
-      - DOCKER_FILE: "dev-ansible/Dockerfile"
+      - DOCKER_FILE: "dev-ansible/Dockerfile1"
+      - DOCKER_FILE: "dev-ansible/Dockerfile2"
   script:
     - |
       export release_asset="$DOCKER_FILE"
