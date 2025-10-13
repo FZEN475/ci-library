@@ -157,7 +157,8 @@ release_job:
           [Последний релиз](${CI_PROJECT_URL}/-/releases/permalink/latest)  
           [Пример ссылки на последнюю версию файла](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads/direct_asset_path)  
           EOF
-    -  cat desc.md
+    - ls -all ./
+    - cat ./desc.md
     - |
       glab release create "$test_tag" --name "Release $test_tag" -F desc.md
 #  release:
