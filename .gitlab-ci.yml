@@ -212,9 +212,8 @@ release_job:
       echo "$test_tag"
     - |
       cat > desc.md <<EOF
-      Automated release for tag $test_tag  
-      [Последний релиз](${CI_PROJECT_URL}/-/releases/permalink/latest)  
-      [Пример ссылки на последнюю версию файла](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads/direct_asset_path)  
+      Автоматический релиз для $test_tag  
+      [Последний релиз](${CI_PROJECT_URL}/-/releases/permalink/latest)    
       EOF
     - ls -all ./
     - cat ./desc.md
@@ -245,7 +244,7 @@ release_job:
         echo "---  " >> desc.md
         echo "### Список последних версий  " >> desc.md
         echo "$json_data" | jq -c '.[]' | while read -r item; do
-            _name==$(echo "$item" | jq -r '.name')
+            _name=$(echo "$item" | jq -r '.name')
             direct_asset_path=$(echo "$item" | jq -r '.direct_asset_path')
             echo "- [${_name}](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads${direct_asset_path})" >> desc.md
         done
