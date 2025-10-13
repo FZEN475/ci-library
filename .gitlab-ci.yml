@@ -69,12 +69,12 @@ stages:
   
     local api_url="$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/tags"
     
-    curl -f -X GET \
-      -H "Authorization: Bearer ${token}" \
-      --data-urlencode "order_by=version" \
-      --data-urlencode "sort=desc" \
-      $( [ -n "$search" ] && echo "--data-urlencode search=$search" ) \
-      "$api_url"
+    echo "curl -f -X GET \
+      -H \"Authorization: Bearer ${token}\" \
+      --data-urlencode \"order_by=version\" \
+      --data-urlencode \"sort=desc\" \
+      $( [ -n \"$search\" ] && echo \"--data-urlencode search=$search\" ) \
+      \"$api_url\""
     
     tag_list=$(curl -s -f -X GET \
       -H "Authorization: Bearer ${token}" \
