@@ -137,42 +137,42 @@ stages:
     echo "${AUTO_TAG_VERSION_PREFIX}${AUTO_TAG_VERSION_MAJOR}.${AUTO_TAG_VERSION_MINOR}.${patch}"
   }
 
-package-example:
-  stage: generator
-  extends: [ .package-cache, .release-package-template ]
-  before_script:
-    - !reference [ .install-utility ]
-  parallel:
-    matrix:
-      - PACKAGE_FILE: "package/file1"
-      - PACKAGE_FILE: "package/file2"
-  script:
-    - |
-      {
-        echo "release_package_name=$PACKAGE_FILE"
-        echo "release_package_url=${CI_SERVER_URL}/${PACKAGE_FILE}"
-        echo "release_package_link_type=other"
-        echo "release_package_direct_asset_path=${PACKAGE_FILE}"
-      } > after_script.env
-    
-        
-#docker-example:
+#package-example:
 #  stage: generator
-#  extends: [ .package-cache, .release-docker-template ]
+#  extends: [ .package-cache, .release-package-template ]
 #  before_script:
 #    - !reference [ .install-utility ]
 #  parallel:
 #    matrix:
-#      - DOCKER_REPO: "${CI_REGISTRY}/${CI_PROJECT_PATH}/example_1"
-#        DOCKER_TAG: "0.0.1"
-#      - DOCKER_REPO: "${CI_REGISTRY}/${CI_PROJECT_PATH}/example_2"
-#        DOCKER_TAG: "0.0.1"
+#      - PACKAGE_FILE: "package/file1"
+#      - PACKAGE_FILE: "package/file2"
 #  script:
 #    - |
 #      {
-#        echo "release_docker_repository=${DOCKER_REPO}"
-#        echo "release_docker_tag=${DOCKER_TAG}"
+#        echo "release_package_name=$PACKAGE_FILE"
+#        echo "release_package_url=${CI_SERVER_URL}/${PACKAGE_FILE}"
+#        echo "release_package_link_type=other"
+#        echo "release_package_direct_asset_path=${PACKAGE_FILE}"
 #      } > after_script.env
+    
+        
+docker-example:
+  stage: generator
+  extends: [ .package-cache, .release-docker-template ]
+  before_script:
+    - !reference [ .install-utility ]
+  parallel:
+    matrix:
+      - DOCKER_REPO: "${CI_REGISTRY}/${CI_PROJECT_PATH}/example_1"
+        DOCKER_TAG: "0.0.1"
+      - DOCKER_REPO: "${CI_REGISTRY}/${CI_PROJECT_PATH}/example_2"
+        DOCKER_TAG: "0.0.1"
+  script:
+    - |
+      {
+        echo "release_docker_repository=${DOCKER_REPO}"
+        echo "release_docker_tag=${DOCKER_TAG}"
+      } > after_script.env
 
 
 #    - |
