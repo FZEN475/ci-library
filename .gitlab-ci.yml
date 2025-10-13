@@ -137,21 +137,42 @@ stages:
     echo "${AUTO_TAG_VERSION_PREFIX}${AUTO_TAG_VERSION_MAJOR}.${AUTO_TAG_VERSION_MINOR}.${patch}"
   }
 
-assets_generator:
+package-example:
   stage: generator
-  image: registry.gitlab.com/gitlab-org/cli:latest
-  extends: [ .package-cache, .release-docker-template, .release-package-template ]
+  extends: [ .package-cache, .release-package-template ]
   before_script:
     - !reference [ .install-utility ]
   parallel:
     matrix:
-      - DOCKER_FILE: "dev-ansible/Dockerfile1"
-      - DOCKER_FILE: "dev-ansible/Dockerfile2"
+      - PACKAGE_FILE: "test/file1"
+      - PACKAGE_FILE: "test/file2"
   script:
-    - release_package_name="$DOCKER_FILE"
-    - release_package_url="${CI_SERVER_URL}/$DOCKER_FILE"
-    - release_package_link_type="image"
-    - direct_asset_path="/$DOCKER_FILE"
+    - |
+      {
+        echo "release_package_name=$PACKAGE_FILE"
+        echo "release_package_url=${CI_SERVER_URL}/${PACKAGE_FILE}"
+        echo "release_package_link_type=other"
+        echo "release_package_direct_asset_path=${PACKAGE_FILE}"
+      } > after_script.env
+    
+        
+docker-example:
+  stage: generator
+  extends: [ .package-cache, .release-docker-template ]
+  before_script:
+    - !reference [ .install-utility ]
+  parallel:
+    matrix:
+      - DOCKER_FILE: "test/Dockerfile1"
+      - DOCKER_FILE: "test/Dockerfile2"
+  script:
+    - |
+      {
+        echo "release_docker_image=$DOCKER_FILE"
+        echo "release_docker_repository=${CI_SERVER_URL}/${DOCKER_FILE}"
+      } > after_script.env
+
+
 #    - |
 #      echo release_asset_${CI_NODE_INDEX}="$DOCKER_FILE"
 #    - |
