@@ -29,26 +29,27 @@ variables:
 stages:
   - commit-rules-test
   - combine-rules-test
+  - generator
   - auto-merge
   - auto-release
 
-#package-example:
-#  stage: generator
-#  extends: [ .package-cache, .release-package-template ]
-#  before_script:
-#    - !reference [ .install-utility ]
-#  parallel:
-#    matrix:
-#      - PACKAGE_FILE: "package/file1"
-#      - PACKAGE_FILE: "package/file2"
-#  script:
-#    - |
-#      {
-#        echo "release_package_name=$PACKAGE_FILE"
-#        echo "release_package_url=${CI_SERVER_URL}/${PACKAGE_FILE}"
-#        echo "release_package_link_type=other"
-#        echo "release_package_direct_asset_path=${PACKAGE_FILE}"
-#      } > release_after_script.env
+package-example:
+  stage: generator
+  extends: [ .package-cache, .release-package-template ]
+  before_script:
+    - !reference [ .install-utility ]
+  parallel:
+    matrix:
+      - PACKAGE_FILE: "package/file1"
+      - PACKAGE_FILE: "package/file2"
+  script:
+    - |
+      {
+        echo "release_package_name=$PACKAGE_FILE"
+        echo "release_package_url=${CI_SERVER_URL}/${PACKAGE_FILE}"
+        echo "release_package_link_type=other"
+        echo "release_package_direct_asset_path=${PACKAGE_FILE}"
+      } > release_after_script.env
     
         
 #docker-example:
