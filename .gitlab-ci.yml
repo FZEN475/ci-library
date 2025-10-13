@@ -1,60 +1,161 @@
 
-include:
-#  - local: 'templates/-0-tests-rules/template.yml'
+#include:
+##  - local: 'templates/-0-tests-rules/template.yml'
+##    inputs:
+##      test-pattern: '/^\d+\.\d+\.\d+$/'
+#
+#  - local: 'templates/auto-gitlab/template.yml'
 #    inputs:
-#      test-pattern: '/^\d+\.\d+\.\d+$/'
-
-  - local: 'templates/auto-gitlab/template.yml'
-    inputs:
-      auto-rebase: true
-      auto-approve: true
-      
-      auto-merge: true
-      auto-remove-source-branch: true
-      
-      auto-tag: true
-      auto-tag-pattern: '/^\d+\.\d+\.\d+$/'
-      auto-tag-version-major: 0
-      auto-tag-version-minor: 4
-      
-      auto-release: true
-      extra-needs-jobs:
-        - job: test-assets
-
-variables:
-  CI_DEBUG_TRACE: "true"
+#      auto-rebase: true
+#      auto-approve: true
+#
+#      auto-merge: true
+#      auto-remove-source-branch: true
+#
+#      auto-tag: true
+#      auto-tag-pattern: '/^\d+\.\d+\.\d+$/'
+#      auto-tag-version-major: 0
+#      auto-tag-version-minor: 4
+#
+#      auto-release: true
+#      extra-needs-jobs:
+#        - job: test-assets
+#
+#variables:
+#  CI_DEBUG_TRACE: "true"
+#
+#stages:
+#  - commit-rules-test
+#  - combine-rules-test
+#  - auto-merge
+#  - auto-release
+#
+#
+#test-assets:
+#  stage: auto-merge
+#  cache:
+#    - key: "$ARTIFACTS_DIR"
+#      paths:
+#        - "$ARTIFACTS_DIR"
+#  script:
+#    - mkdir -p "$ARTIFACTS_DIR"
+#    - echo "Test" > "$ARTIFACTS_DIR/test.txt"
+#    - |
+#      {
+#        echo "docker_image=docker_image"
+#        echo "docker_image_digest=docker_image_digest"
+#        echo "docker_repository=docker_repository"
+#        echo "docker_tag=docker_tag"
+#        echo "docker_digest=docker_digest"
+#      } > docker.env
+#  artifacts:
+#    reports:
+#      dotenv:
+#        - docker.env
 
 stages:
-  - commit-rules-test
-  - combine-rules-test
-  - auto-merge
-  - auto-release
-    
+  - release
 
-test-assets:
-  stage: auto-merge
-  cache:
-    - key: "$ARTIFACTS_DIR"
-      paths:
-        - "$ARTIFACTS_DIR"
+.gitlab-api-tags-test: |
+  api_get_tags() {
+    local token="${1:?Не передан токен авторизации}"
+    local search="${2:-}"  # Можно передавать фильтр
+  
+    : "${CI_API_V4_URL:?Не задана переменная CI_API_V4_URL}"
+    : "${CI_PROJECT_ID:?Не задана переменная CI_PROJECT_ID}"
+  
+    local api_url="$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/tags"
+  
+    tag_list=$(curl -s -f -X GET \
+      -H "Authorization: Bearer ${token}" \
+      --data-urlencode "order_by=version" \
+      --data-urlencode "sort=desc" \
+      $( [ -n "$search" ] && echo "--data-urlencode search=$search" ) \
+      "$api_url")
+  
+    echo "$tag_list"
+  }
+  
+  get_last_release_tag() {
+    local tags_json="${1:-[]}"
+    echo "$tags_json" | jq -r 'if type=="array" and length>0 then .[0] else empty end'
+  }
+  
+  get_patch_from_tag() {
+    local tag="$1"
+  
+    # Убираем "v" в начале, если есть
+    tag="${tag#v}"
+  
+    # Разбиваем на части
+    set -- $(echo "$tag" | tr '.' ' ')
+    local major="$1"
+    local minor="$2"
+    local patch="$3"
+  
+    # Проверяем, что patch — число
+    case "$patch" in
+      ''|*[!0-9]*) patch=0 ;;
+    esac
+  
+    echo "$patch"
+  }
+
+  get_next_tag() {
+    local token="${1:?Не передан токен авторизации}"
+  
+    : "${CI_API_V4_URL:?Не задана переменная CI_API_V4_URL}"
+    : "${CI_PROJECT_ID:?Не задана переменная CI_PROJECT_ID}"
+    : "${CI_DEFAULT_BRANCH:?Не задана переменная CI_DEFAULT_BRANCH}"
+  
+    # Получаем теги с нужным мажором и минором, отсортированные по версии (desc)
+    TAGS_JSON=$(api_get_tags "$token" "${AUTO_TAG_VERSION_PREFIX}${AUTO_TAG_VERSION_MAJOR}.${AUTO_TAG_VERSION_MINOR}." | tr -d '\r' )
+  
+    printf '%s\n' "$TAGS_JSON" | jq .
+  
+    LAST_TAG=$(get_last_release_tag "$TAGS_JSON")
+
+    log_info "$LAST_TAG" 
+  
+    if [ -z "$LAST_TAG" ]; then
+      patch=0
+      ref="$CI_DEFAULT_BRANCH"
+    else
+      patch=$(get_patch_from_tag "$(echo "$LAST_TAG" | jq -r '.name')")
+      patch=$((patch + 1))
+      ref="$CI_COMMIT_SHA"
+    fi
+
+    # Формируем имя нового тега
+    new_tag="${AUTO_TAG_VERSION_PREFIX}${AUTO_TAG_VERSION_MAJOR}.${AUTO_TAG_VERSION_MINOR}.${patch}"
+    log_info "Создаем тег: $new_tag (ref: $ref)"
+
+
+  }
+
+
+release_job:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/cli:latest
+  before_script:
+    - !reference [ .install-utility ]
+    - !reference [ .gitlab-api-tags-test ]
+    - echo get_next_tag "$CI_JOB_TOKEN"
+#  rules:
+#    - if: $CI_COMMIT_TAG                  # Run this job when a tag is created manually
   script:
-    - mkdir -p "$ARTIFACTS_DIR"
-    - echo "Test" > "$ARTIFACTS_DIR/test.txt"
     - |
-      {
-        echo "docker_image=docker_image"
-        echo "docker_image_digest=docker_image_digest"
-        echo "docker_repository=docker_repository"
-        echo "docker_tag=docker_tag"
-        echo "docker_digest=docker_digest"
-      } > docker.env
-  artifacts:
-    reports:
-      dotenv:
-        - docker.env
+      echo "123"
+      
+      
+      
 
-
-
+#      glab release create "$CI_COMMIT_TAG" --name "Release $CI_COMMIT_TAG" \
+#        --assets-links="[{\"name\":\"${DARWIN_AMD64_BINARY}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${DARWIN_AMD64_BINARY}\"},{\"name\":\"${LINUX_AMD64_BINARY}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_BINARY}\"}]"
+#  release:
+#    tag_name: $CI_COMMIT_TAG
+#    name: 'Release $CI_COMMIT_TAG'
+#    description: 'Release created using the CLI.'
 
 
 
