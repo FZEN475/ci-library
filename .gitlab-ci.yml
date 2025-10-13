@@ -152,13 +152,14 @@ release_job:
     - |
       echo "$test_tag"
     - |
-      read -r -d '' desc << EOF
-      Automated release for tag $test_tag  
-      [Последний релиз](${CI_PROJECT_URL}/-/releases/permalink/latest)  
-      [Пример ссылки на последнюю версию файла](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads/direct_asset_path)  
-      EOF
+      desc.md << EOF
+          Automated release for tag $test_tag  
+          [Последний релиз](${CI_PROJECT_URL}/-/releases/permalink/latest)  
+          [Пример ссылки на последнюю версию файла](${CI_PROJECT_URL}/-/releases/permalink/latest/downloads/direct_asset_path)  
+          EOF
+    -  cat desc.md
     - |
-      glab release create "$test_tag" --name "Release $test_tag" --notes "$desc"
+      glab release create "$test_tag" --name "Release $test_tag" -F desc.md
 #  release:
 #    tag_name: $CI_COMMIT_TAG
 #    name: 'Release $CI_COMMIT_TAG'
