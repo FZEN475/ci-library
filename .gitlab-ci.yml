@@ -224,9 +224,12 @@ release_job:
         echo "### Docker образы  " >> desc.md
         for release_note_name in $release_notes_list; do
             eval "release_note_string=\$$release_note_name"
-            echo "- $release_note_string" >> desc.md
+            echo "$release_note_string" | jq -r '.head // empty' >> desc.md
+            echo "$release_note_string" | jq -r '.image // empty' >> desc.md
+            echo "$release_note_string" | jq -r '.latest // empty' >> desc.md
         done
       fi
+
     - |
       assets_list_raw=$(env | awk -F= '/^release_asset_/ {print $1}')
       if [ -n "$release_notes_list" ]; then
@@ -244,7 +247,7 @@ release_job:
       if echo "$assets_list_json" | jq -e 'length > 0' > /dev/null; then
         echo "---  " >> desc.md
         echo "### Список последних версий  " >> desc.md
-        echo "$json_data" | jq -r '.[] | "- [\(.name)](\(env.CI_PROJECT_URL)/-/releases/permalink/latest/downloads\(.direct_asset_path))"' >> desc.md
+        echo "$assets_list_json" | jq -r '.[] | "- [\(.name)](\(env.CI_PROJECT_URL)/-/releases/permalink/latest/downloads\(.direct_asset_path))"' >> desc.md
       fi
     - |
       glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
