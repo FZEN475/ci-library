@@ -159,6 +159,7 @@ assets_generator:
       '{"name": $name, "url": $url, "link_type": $link_type, "direct_asset_path": $direct_asset_path}' | jq -R -s '.'
       )
     - echo "$assets_json"
+    - echo "$assets_json" | jq -r '.'
     - |
       {
         echo release_asset_${CI_NODE_INDEX}=$assets_json
@@ -208,7 +209,7 @@ release_job:
 #    name: 'Release $CI_COMMIT_TAG'
 #    description: 'Release created using the CLI.'
 
-   
+
 
 #spec:
 #  inputs:
