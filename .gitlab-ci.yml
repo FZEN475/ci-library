@@ -155,7 +155,7 @@ release_job:
   script:
     - |
       echo "$test_tag"
-      
+    - git tag -n
       
       
 
