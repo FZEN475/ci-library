@@ -224,9 +224,9 @@ release_job:
         echo "### Docker образы  " >> desc.md
         for release_note_name in $release_notes_list; do
             eval "release_note_string=\$$release_note_name"
-            echo "$release_note_string" | jq -r '.head // empty' >> desc.md
-            echo "$release_note_string" | jq -r '.image // empty' >> desc.md
-            echo "$release_note_string" | jq -r '.latest // empty' >> desc.md
+            echo "$release_note_string" | jq -r 'fromjson | .head // empty' >> desc.md
+            echo "$release_note_string" | jq -r 'fromjson | .image // empty' >> desc.md
+            echo "$release_note_string" | jq -r 'fromjson | .latest // empty' >> desc.md
         done
       fi
 
@@ -246,7 +246,7 @@ release_job:
     - |
       if echo "$assets_list_json" | jq -e 'length > 0' > /dev/null; then
         echo "---  " >> desc.md
-        echo "### Список последних версий  " >> desc.md
+        echo "### Последние версии пакетов  " >> desc.md
         echo "$assets_list_json" | jq -r '.[] | "- [\(.name)](\(env.CI_PROJECT_URL)/-/releases/permalink/latest/downloads\(.direct_asset_path))"' >> desc.md
       fi
     - |
