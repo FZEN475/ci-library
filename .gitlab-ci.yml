@@ -156,23 +156,23 @@ package-example:
       } > after_script.env
     
         
-docker-example:
-  stage: generator
-  extends: [ .package-cache, .release-docker-template ]
-  before_script:
-    - !reference [ .install-utility ]
-  parallel:
-    matrix:
-      - DOCKER_REPO: "${CI_REGISTRY}/${CI_PROJECT_PATH}/example_1"
-        DOCKER_TAG: "0.0.1"
-      - DOCKER_REPO: "${CI_REGISTRY}/${CI_PROJECT_PATH}/example_2"
-        DOCKER_TAG: "0.0.1"
-  script:
-    - |
-      {
-        echo "release_docker_repository=${DOCKER_REPO}"
-        echo "release_docker_tag=${DOCKER_TAG}"
-      } > after_script.env
+#docker-example:
+#  stage: generator
+#  extends: [ .package-cache, .release-docker-template ]
+#  before_script:
+#    - !reference [ .install-utility ]
+#  parallel:
+#    matrix:
+#      - DOCKER_REPO: "${CI_REGISTRY}/${CI_PROJECT_PATH}/example_1"
+#        DOCKER_TAG: "0.0.1"
+#      - DOCKER_REPO: "${CI_REGISTRY}/${CI_PROJECT_PATH}/example_2"
+#        DOCKER_TAG: "0.0.1"
+#  script:
+#    - |
+#      {
+#        echo "release_docker_repository=${DOCKER_REPO}"
+#        echo "release_docker_tag=${DOCKER_TAG}"
+#      } > after_script.env
 
 
 #    - |

@@ -231,7 +231,7 @@
     - NORMALIZED_CI_JOB_NAME_SLUG=$(echo "$CI_JOB_NAME_SLUG" | sed 's/[^a-zA-Z0-9_]/_/g')
     - |
       release_notes_json=$(jq -n \
-        --arg head "#### Доступные Docker образы дял $CI_COMMIT_TAG  " \
+        --arg head "#### Доступные Docker образы для $CI_COMMIT_TAG  " \
         --arg image "- ${release_docker_repository}:${release_docker_tag}" \
         --arg latest "- ${release_docker_repository}:latest" \
         '{"head": $head, "image": $image, "latest": $latest}' | jq -R -s '.'
