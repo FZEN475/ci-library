@@ -52,10 +52,6 @@ spec:
       description: "Directory with artifacts"
       type: string
       default: "artifacts-$CI_PROJECT_ID-$CI_COMMIT_SHORT_SHA"
-    extra-needs-jobs:
-      description: "Artifact job list"
-      type: array
-      default: []
     
 ---
 
@@ -567,7 +563,7 @@ stages:
         glab release create "$CI_COMMIT_TAG" --name "Release $CI_COMMIT_TAG" -F desc.md --ref "$CI_COMMIT_SHA"
       fi
   rules:
-    - !reference [ .tags-only-pattern, rules ]
+    - !reference [ .tags-default-only-pattern, rules ]
     - if: '"$[[ inputs.auto-release ]]" == "true"'
       when: on_success
     - when: never
