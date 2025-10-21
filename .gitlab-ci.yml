@@ -23,7 +23,7 @@ include:
 
   - local: 'templates/build-ansible-collection/template.yml'
     inputs:
-      collection-path: "test_examples"
+      collection-path: "test_examples/ansible_galaxy"
 
 variables:
   CI_DEBUG_TRACE: "true"
