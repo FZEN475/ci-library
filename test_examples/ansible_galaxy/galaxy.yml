@@ -1,0 +1,11 @@
+namespace: example
+name: ci
+version: "1.0.0"
+readme: README.md
+authors:
+  - "Your Name firzen475@gmail.com"
+description: "Библиотека для тестовой сборки."
+license:
+  - "MIT"
+repository: "https://gitlab.fzen.pro/library/ci.git"
+

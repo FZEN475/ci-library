@@ -1,52 +1,50 @@
 # templates/build-ansible-collection/template.yml
 spec:
   inputs:
-    job-name:
-      description: "Name of build job"
-      type: string
-      default: "ansible-galaxy-build"
+#    job-name:
+#      description: "Name of build job"
+#      type: string
+#      default: "ansible-galaxy-build"
     collection-path:
       description: "Collection source"
       type: string
-    ansible-galaxy-extra-args-build:
+    ansible-galaxy-extra-args:
       description: "Extra args for build"
       type: string
       default: ""
 ---
 variables:
   COLLECTION_PATH: $[[ inputs.collection-path ]]
-  ANSIBLE_GALAXY_EXTRA_ARGS_BUILD: $[[ inputs.ansible-galaxy-extra-args-build ]]
-  IS_TAG_VALID: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ "^[0-9]+\\.[0-9]+\\.[0-9]+$"'
+  ANSIBLE_GALAXY_EXTRA_ARGS: $[[ inputs.ansible-galaxy-extra-args ]]
+#  IS_TAG_VALID: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ "^[0-9]+\\.[0-9]+\\.[0-9]+$"'
 
 
-.is_merge_request_rule: 
-  - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED != "true"'
-    when: never
-#  - if: '$CI_PIPELINE_SOURCE != "merge_request_event"'
+#.is_merge_request_rule:
+#  - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED != "true"'
 #    when: never
+##  - if: '$CI_PIPELINE_SOURCE != "merge_request_event"'
+##    when: never
 
 stages:
   - build
 # TODO: Не получилось пробрасывать динамические имена в другие component.inputs
 # FIXME: Требуется вернуться к этому позже
 # $[[ inputs.job-prefix | expand_vars ]]
-"$[[ inputs.job-name | expand_vars ]]":
+build-ansible-galaxy-library:
   stage: build
   image: docker.io/cytopia/ansible:latest-tools
-  variables:
-    ARTIFACTS_DIR: "artifacts-$CI_PROJECT_ID-$CI_JOB_ID"
   script:
     - cd "$COLLECTION_PATH"
-    - ansible-galaxy collection build -f "$ANSIBLE_GALAXY_EXTRA_ARGS_BUILD"
-    - mkdir -p "$CI_PROJECT_DIR/$ARTIFACTS_DIR/$COLLECTION_PATH"
+    - ansible-galaxy collection build -f "$ANSIBLE_GALAXY_EXTRA_ARGS"
+#    - mkdir -p "$CI_PROJECT_DIR/$ARTIFACTS_DIR/$COLLECTION_PATH"
     - ls -all ./
-    - echo "$COLLECTION_PATH"
-    - mv ./*.tar.gz "$CI_PROJECT_DIR/$ARTIFACTS_DIR/$COLLECTION_PATH"/
-  artifacts:
-    name: "$ARTIFACTS_DIR"
-    paths:
-      - "$ARTIFACTS_DIR/"
-    expire_in: 1 day
+#    - echo "$COLLECTION_PATH"
+#    - mv ./*.tar.gz "$CI_PROJECT_DIR/$ARTIFACTS_DIR/$COLLECTION_PATH"/
+#  artifacts:
+#    name: "$ARTIFACTS_DIR"
+#    paths:
+#      - "$ARTIFACTS_DIR/"
+#    expire_in: 1 day
   rules:
 #    - !reference [.is_merge_request_rule]
     - when: always

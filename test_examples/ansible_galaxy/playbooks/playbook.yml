@@ -1,0 +1,3 @@
+- name: test
+  include_role:
+    name: library.k8s_toolkit.__test__
