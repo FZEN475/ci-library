@@ -48,10 +48,10 @@ spec:
       description: "Auto release after merge"
       type: boolean
       default: false
-    artifacts-dir:
-      description: "Directory with artifacts"
-      type: string
-      default: "artifacts-$CI_PROJECT_ID-$CI_COMMIT_SHORT_SHA"
+#    artifacts-dir:
+#      description: "Directory with artifacts"
+#      type: string
+#      default: "artifacts-$CI_PROJECT_ID-$CI_COMMIT_SHORT_SHA"
     
 ---
 
@@ -64,7 +64,7 @@ variables:
   AUTO_TAG_VERSION_PREFIX: $[[ inputs.auto-tag-version-prefix ]]
   AUTO_TAG_VERSION_MAJOR: $[[ inputs.auto-tag-version-major ]]
   AUTO_TAG_VERSION_MINOR: $[[ inputs.auto-tag-version-minor ]]
-  ARTIFACTS_DIR: $[[ inputs.artifacts-dir | expand_vars ]]
+#  ARTIFACTS_DIR: $[[ inputs.artifacts-dir | expand_vars ]]
 
 stages:
   - auto-merge

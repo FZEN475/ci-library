@@ -27,27 +27,66 @@ variables:
 
 stages:
   - build
+  - build
+    
 # TODO: Не получилось пробрасывать динамические имена в другие component.inputs
 # FIXME: Требуется вернуться к этому позже
 # $[[ inputs.job-prefix | expand_vars ]]
 build-ansible-galaxy-library:
   stage: build
   image: docker.io/cytopia/ansible:latest-tools
+  before_script:
+    - !reference [ .install-utility ]
+  variables:
+    PACKAGE_VERSION: "dev"
   script:
     - cd "$COLLECTION_PATH"
-    - ansible-galaxy collection build -f "$ANSIBLE_GALAXY_EXTRA_ARGS"
+    - yq e ".version = \"${PACKAGE_VERSION}\"" -i galaxy.yml
+    - 
+    - ansible-galaxy collection build -f --output-path "${CI_PROJECT_DIR}/dist" "$ANSIBLE_GALAXY_EXTRA_ARGS"
 #    - mkdir -p "$CI_PROJECT_DIR/$ARTIFACTS_DIR/$COLLECTION_PATH"
     - ls -all ./
 #    - echo "$COLLECTION_PATH"
 #    - mv ./*.tar.gz "$CI_PROJECT_DIR/$ARTIFACTS_DIR/$COLLECTION_PATH"/
-#  artifacts:
-#    name: "$ARTIFACTS_DIR"
-#    paths:
-#      - "$ARTIFACTS_DIR/"
-#    expire_in: 1 day
+  artifacts:
+    name: "${CI_PROJECT_ID}-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - "${CI_PROJECT_DIR}/dist"
+    expire_in: 1 day
   rules:
-#    - !reference [.is_merge_request_rule]
+    - if: $CI_COMMIT_TAG
+      variables:
+        PACKAGE_VERSION: "$CI_COMMIT_TAG"
     - when: always
+
+
+release:
+  stage: build
+  needs:
+    - build-ansible-galaxy-library
+  script:
+    - cd "$COLLECTION_PATH"
+    - NAMESPACE=$(yq e '.namespace' galaxy.yml)
+    - NAME=$(yq e '.name' galaxy.yml)
+    - VERSION=$(yq e '.version' galaxy.yml)
+    - ARTIFACT=$(ls -1t dist/*.tar.gz | head -n1)
+    - curl --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        --upload-file "$ARTIFACT" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/$NAMESPACE-$NAME-$CI_COMMIT_TAG"
+    - curl --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        --upload-file "$ARTIFACT" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/$NAMESPACE-$NAME-latest"
+
+    - |
+      {
+        echo "release_package_name=$PACKAGE_FILE"
+        echo "release_package_url=${CI_SERVER_URL}/${PACKAGE_FILE}"
+        echo "release_package_link_type=other"
+        echo "release_package_direct_asset_path=${PACKAGE_FILE}"
+      } > release_after_script.env
+  rules:
+    - when: always
+#    - if: $CI_COMMIT_TAG
 
 #"package-$[[ inputs.collection-path ]]":
 #  stage: package

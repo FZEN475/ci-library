@@ -147,7 +147,7 @@
 .install-utility:
   - !reference [ .logs-scripts ]
   - !reference [ .install-tool ]
-  - install_tool curl jq openssl ca-certificates
+  - install_tool curl jq yq openssl ca-certificates
   - !reference [ .register-ca ]
   - register_ca "$CI_SERVER_TLS_CA_FILE"
 
