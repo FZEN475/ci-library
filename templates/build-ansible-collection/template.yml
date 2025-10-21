@@ -70,8 +70,6 @@ push-ansible-galaxy-library:
     - NAMESPACE=$(yq e '.namespace' "${COLLECTION_PATH}/galaxy.yml")
     - NAME=$(yq e '.name' "${COLLECTION_PATH}/galaxy.yml")
     - VERSION=$(yq e '.version' "${COLLECTION_PATH}/galaxy.yml")
-    - ARTIFACT=$(ls -1t dist/*.tar.gz | head -n1)
-    - echo "$ARTIFACT"
     - |
       for file in dist/*.tar.gz; do
         # Проверяем, что файлы существуют
@@ -79,13 +77,13 @@ push-ansible-galaxy-library:
       
         filename=$(basename "$file")
       
-        curl --location \
+        curl -f --location \
              --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
              --upload-file "$file" \
-             "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/my_package/${CI_COMMIT_TAG}/$filename"
+             "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${NAMESPACE}-${NAME}/0.0.0/$filename"
         {
           echo "release_package_name=$filename"
-          echo "release_package_url=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/my_package/${CI_COMMIT_TAG}/$filename"
+          echo "release_package_url=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${NAMESPACE}-${NAME}/0.0.0/$filename"
           echo "release_package_link_type=other"
           echo "release_package_direct_asset_path=$filename"
         } > release_after_script.env
