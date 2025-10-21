@@ -72,19 +72,25 @@ push-ansible-galaxy-library:
     - VERSION=$(yq e '.version' "${COLLECTION_PATH}/galaxy.yml")
     - ARTIFACT=$(ls -1t dist/*.tar.gz | head -n1)
     - echo "$ARTIFACT"
-    - curl --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-        --upload-file "$ARTIFACT" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/$NAMESPACE-$NAME-$CI_COMMIT_TAG"
-    - curl --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-        --upload-file "$ARTIFACT" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/$NAMESPACE-$NAME-latest"
     - |
-      {
-        echo "release_package_name=$PACKAGE_FILE"
-        echo "release_package_url=${CI_SERVER_URL}/${PACKAGE_FILE}"
-        echo "release_package_link_type=other"
-        echo "release_package_direct_asset_path=${PACKAGE_FILE}"
-      } > release_after_script.env
+      for file in dist/*.tar.gz; do
+        # Проверяем, что файлы существуют
+        [ -f "$file" ] || continue
+      
+        filename=$(basename "$file")
+      
+        curl --location \
+             --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+             --upload-file "$file" \
+             "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/my_package/${CI_COMMIT_TAG}/$filename"
+        {
+          echo "release_package_name=$filename"
+          echo "release_package_url=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/my_package/${CI_COMMIT_TAG}/$filename"
+          echo "release_package_link_type=other"
+          echo "release_package_direct_asset_path=$filename"
+        } > release_after_script.env
+      done
+
   rules:
     - when: always
 #    - if: $CI_COMMIT_TAG
