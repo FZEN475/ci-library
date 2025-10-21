@@ -13,6 +13,10 @@ spec:
       type: string
       default: ""
 ---
+
+include:
+  - local: 'templates/-1-common-rules/template.yml'
+
 variables:
   COLLECTION_PATH: $[[ inputs.collection-path ]]
   ANSIBLE_GALAXY_EXTRA_ARGS: $[[ inputs.ansible-galaxy-extra-args ]]
