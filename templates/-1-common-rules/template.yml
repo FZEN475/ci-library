@@ -184,6 +184,9 @@
   not-protected-only:
     - if: '$CI_COMMIT_REF_PROTECTED == "true"'
       when: never
+  default-branch:
+    - if: '$CI_DEFAULT_BRANCH != $CI_COMMIT_BRANCH'
+      when: never
 
 .merge:
   only:
@@ -218,9 +221,7 @@
   pattern:
     - if: '$CI_COMMIT_TAG_PATTERN == "" || $CI_COMMIT_TAG !~ $CI_COMMIT_TAG_PATTERN'
       when: never
-  default-branch:
-    - if: '$CI_DEFAULT_BRANCH != $CI_COMMIT_BRANCH'
-      when: never
+
 
 .unprotected-branch-commit:
   rules:
@@ -245,8 +246,3 @@
     - !reference [.tagged, only]
     - !reference [.tagged, pattern]
       
-.tags-default-only-pattern:
-  rules:
-    - !reference [.tagged, only]
-    - !reference [.tagged, pattern]
-    - !reference [.tagged, default-branch]
