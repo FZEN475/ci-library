@@ -42,11 +42,12 @@ build-ansible-galaxy-library:
     - if: $CI_COMMIT_TAG
       variables:
         PACKAGE_VERSION: "$CI_COMMIT_TAG"
-    - when: always
+    - when: on_success
 
 
 push-ansible-galaxy-library:
   stage: push
+  extends: [ .package-cache, .release-package-template ]
   before_script:
     - !reference [ .install-utility ]
   needs:
