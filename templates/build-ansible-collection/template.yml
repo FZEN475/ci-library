@@ -31,7 +31,7 @@ variables:
 
 stages:
   - build
-  - build
+  - push
     
 # TODO: Не получилось пробрасывать динамические имена в другие component.inputs
 # FIXME: Требуется вернуться к этому позже
@@ -64,8 +64,8 @@ build-ansible-galaxy-library:
     - when: always
 
 
-release:
-  stage: build
+push-ansible-galaxy-library:
+  stage: push
   needs:
     - build-ansible-galaxy-library
   script:
@@ -80,7 +80,6 @@ release:
     - curl --header "JOB-TOKEN: $CI_JOB_TOKEN" \
         --upload-file "$ARTIFACT" \
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/$NAMESPACE-$NAME-latest"
-
     - |
       {
         echo "release_package_name=$PACKAGE_FILE"
