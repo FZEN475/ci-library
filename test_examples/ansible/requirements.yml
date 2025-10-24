@@ -1,8 +1,4 @@
 
-roles:
-  - name: example.ci.__test__
-
-
 collections:
   - name: ../../test_examples/ansible_galaxy
     type: dir
