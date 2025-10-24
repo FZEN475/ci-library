@@ -33,7 +33,7 @@ spec:
     lint-disabled:
       description: Disable Ansible Lint
       type: boolean
-      default: false
+      default: true
     prod-deploy-strategy:
       description: Defines the deployment to production strategy.
       options:
