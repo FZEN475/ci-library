@@ -100,6 +100,7 @@ variables:
     - assert_defined "${ENV_INVENTORY:-${ANSIBLE_DEFAULT_INVENTORY}}" 'Missing required Ansible inventory'
     - assert_defined "${ENV_PLAYBOOK_FILE}" 'Missing required Ansible playbook'
     - ls -all /root/.ssh/
+    - cat /root/.ssh/id_ed25519
   script:
     - !reference [ .ansible-commands, deploy ]
   after_script:
