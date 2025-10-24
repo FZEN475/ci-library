@@ -40,12 +40,13 @@ spec:
         - manual
         - auto
       default: auto
-
+---
+include:
+  - local: 'templates/-1-common-rules/template.yml'
 
 ---
 
 include:
-  - local: 'templates/-1-common-rules/template.yml'
 
   - component: $CI_SERVER_FQDN/library/ansible-gitlab-template/gitlab-ci-ansible@master
     inputs:
