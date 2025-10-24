@@ -45,6 +45,8 @@ spec:
 ---
 
 include:
+  - local: 'templates/-1-common-rules/template.yml'
+
   - component: $CI_SERVER_FQDN/library/ansible-gitlab-template/gitlab-ci-ansible@master
     inputs:
       project-dir: $[[ inputs.project-dir ]]
@@ -60,6 +62,8 @@ include:
       lint-disabled: $[[ inputs.lint-disabled ]]
 
       prod-deploy-strategy: $[[ inputs.prod-deploy-strategy]]
+    rules:
+      - !reference [ .protected-branch-commit, rules ]
 
 variables:
 #  ANSIBLE_PRIVATE_KEY: /root/.ssh/id_ed25519
