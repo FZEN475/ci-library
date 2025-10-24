@@ -2,7 +2,20 @@
 
 include:
   - local: 'templates/deploy-ansible/template.yml'
-    ansible-dir: "./test_examples/ansible"
+    inputs:
+      ansible-dir: './test_examples/ansible/'
+      default-inventory: 'inventory.json'
+      default-extra-args: '-i structure.yaml'
+      
 
-
+prepare_files:
+  stage: generator
+  script:
+    - curl -sSLk "https://ansible.home.lan/inventory.json" -o "./test_examples/ansible/inventory.json"
+    - curl -sSLk "https://ansible.home.lan/structure.yaml" -o "./test_examples/ansible/structure.yaml"
+  artifacts:
+    paths:
+      - ./test_examples/ansible/inventory.json
+      - ./test_examples/ansible/structure.yaml
+    expire_in: 1h
 

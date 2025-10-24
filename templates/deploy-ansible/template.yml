@@ -13,11 +13,11 @@ spec:
     default-inventory:
       description: The default inventory, if used
       type: string
-      default: 'inventory.json'
+      default: ''
     default-extra-args:
       description: Optional default args to add to the ansible-playbook command line
       type: string
-      default: '-i structure.yaml'
+      default: ''
     requirements-file:
       description: The file used to install roles and collections with `ansible-galaxy install`
       type: string
