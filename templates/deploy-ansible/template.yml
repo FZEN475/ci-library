@@ -62,7 +62,7 @@ include:
       prod-deploy-strategy: $[[ inputs.prod-deploy-strategy]]
 
 variables:
-  ANSIBLE_PRIVATE_KEY: /root/.ssh/id_ed25519
+#  ANSIBLE_PRIVATE_KEY: /root/.ssh/id_ed25519
   DEFAULT_CA_CERTS: "$CI_SERVER_TLS_CA_FILE"
 
 .ansible-base:
