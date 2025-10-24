@@ -61,35 +61,35 @@ include:
 
       prod-deploy-strategy: $[[ inputs.prod-deploy-strategy]]
 
-default:
-  tags:
-    - "ansible"
-
-#variables:
-##  ANSIBLE_PRIVATE_KEY: /root/.ssh/id_ed25519
-#  DEFAULT_CA_CERTS: "$CI_SERVER_TLS_CA_FILE"
-#
-#.ansible-base:
-#  services:
-#    - name: "$TBC_TRACKING_IMAGE"
-#      command: ["--service", "ansible", "7.0.2"]
-#  variables:
-#    ANSIBLE_HOME: $CI_PROJECT_DIR/$ANSIBLE_PROJECT_DIR/.ansible
-#  cache:
-#    key: "$CI_COMMIT_REF_SLUG-ansible"
-#    when: always
-#    paths:
-#      - $ANSIBLE_PROJECT_DIR/.ansible
-#  before_script:
-#    - !reference [.ansible-scripts]
-#    - install_ca_certs "${CUSTOM_CA_CERTS:-$DEFAULT_CA_CERTS}"
-#    - cd $ANSIBLE_PROJECT_DIR
-#    - ls -all ./
-#  image:
-#    name: "$ANSIBLE_IMAGE"
-#    entrypoint: [""]
+#default:
 #  tags:
 #    - "ansible"
+
+variables:
+#  ANSIBLE_PRIVATE_KEY: /root/.ssh/id_ed25519
+  DEFAULT_CA_CERTS: "$CI_SERVER_TLS_CA_FILE"
+
+.ansible-base:
+  services:
+    - name: "$TBC_TRACKING_IMAGE"
+      command: ["--service", "ansible", "7.0.2"]
+  variables:
+    ANSIBLE_HOME: $CI_PROJECT_DIR/$ANSIBLE_PROJECT_DIR/.ansible
+  cache:
+    key: "$CI_COMMIT_REF_SLUG-ansible"
+    when: always
+    paths:
+      - $ANSIBLE_PROJECT_DIR/.ansible
+  before_script:
+    - !reference [.ansible-scripts]
+    - install_ca_certs "${CUSTOM_CA_CERTS:-$DEFAULT_CA_CERTS}"
+    - cd $ANSIBLE_PROJECT_DIR
+    - ls -all ./
+  image:
+    name: "$ANSIBLE_IMAGE"
+    entrypoint: [""]
+  tags:
+    - "ansible"
 
 
 
