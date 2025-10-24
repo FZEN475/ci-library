@@ -45,7 +45,7 @@ spec:
 ---
 
 include:
-  - component: $CI_SERVER_FQDN/to-be-continuous/ansible/gitlab-ci-ansible@7.0.2
+  - component: $CI_SERVER_FQDN/library/ansible-gitlab-templatee@7.0.2
     inputs:
       project-dir: $[[ inputs.project-dir ]]
       prod-playbook-file: $[[ inputs.prod-playbook-file ]]
