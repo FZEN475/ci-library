@@ -83,7 +83,7 @@ variables:
   image:
     name: "$ANSIBLE_IMAGE"
     entrypoint: [""]
-  tag:
+  tags:
     - "ansible"
 
 
