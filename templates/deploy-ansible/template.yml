@@ -80,6 +80,7 @@ variables:
     - !reference [.ansible-scripts]
     - install_ca_certs "${CUSTOM_CA_CERTS:-$DEFAULT_CA_CERTS}"
     - cd $ANSIBLE_PROJECT_DIR
+    - ls -all ./
   image:
     name: "$ANSIBLE_IMAGE"
     entrypoint: [""]

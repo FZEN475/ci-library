@@ -4,5 +4,5 @@ roles:
 
 
 collections:
-  - name: test_examples/ansible_galaxy
+  - name: ../../test_examples/ansible_galaxy
     type: dir
