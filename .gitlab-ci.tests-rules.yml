@@ -1,0 +1,5 @@
+
+include:
+  - local: 'templates/-0-tests-rules/template.yml'
+    inputs:
+      test-pattern: '/^\d+\.\d+\.\d+$/'

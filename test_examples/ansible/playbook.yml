@@ -1,0 +1,8 @@
+
+
+- hosts: control_main
+  gather_facts: yes
+  collections:
+    - example.ci
+  roles:
+    - example.ci.__test__

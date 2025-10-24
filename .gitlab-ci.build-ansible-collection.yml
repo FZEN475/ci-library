@@ -1,0 +1,4 @@
+
+- local: 'templates/build-ansible-collection/template.yml'
+  inputs:
+    collection-path: "test_examples/ansible_galaxy"

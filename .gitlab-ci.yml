@@ -1,27 +1,12 @@
 
 include:
-#  - local: 'templates/-0-tests-rules/template.yml'
-#    inputs:
-#      test-pattern: '/^\d+\.\d+\.\d+$/'
+#  - local: '.gitlab-ci.tests-rules.yml'
+#
+#  - local: '.gitlab-ci.auto-gitlab.yml'
+#
+#  - local: '.gitlab-ci.build-ansible-collection.yml'
 
-  - local: 'templates/auto-gitlab/template.yml'
-    inputs:
-      auto-rebase: true
-      auto-approve: true
-
-      auto-merge: true
-      auto-remove-source-branch: true
-
-      auto-tag: true
-      auto-tag-pattern: '/^\d+\.\d+\.\d+$/'
-      auto-tag-version-major: 0
-      auto-tag-version-minor: 4
-
-      auto-release: true
-
-  - local: 'templates/build-ansible-collection/template.yml'
-    inputs:
-      collection-path: "test_examples/ansible_galaxy"
+  - local: '.gitlab-ci.deploy-ansible.yml'
 
 variables:
   CI_DEBUG_TRACE: "true"
@@ -29,48 +14,20 @@ variables:
 stages:
   - commit-rules-test
   - combine-rules-test
+
+
   - generator
   - build
+  - test
+
+  - deploy
+  - production
+    
   - push
   - auto-merge
   - auto-release
 
-package-example:
-  stage: generator
-  extends: [ .package-cache, .release-package-template ]
-  before_script:
-    - !reference [ .install-utility ]
-  parallel:
-    matrix:
-      - PACKAGE_FILE: "package/file1"
-      - PACKAGE_FILE: "package/file2"
-  script:
-    - |
-      {
-        echo "release_package_name=$PACKAGE_FILE"
-        echo "release_package_url=${CI_SERVER_URL}/${PACKAGE_FILE}"
-        echo "release_package_link_type=other"
-        echo "release_package_direct_asset_path=${PACKAGE_FILE}"
-      } > release_after_script.env
 
-
-docker-example:
-  stage: generator
-  extends: [ .package-cache, .release-docker-template ]
-  before_script:
-    - !reference [ .install-utility ]
-  parallel:
-    matrix:
-      - DOCKER_REPO: "${CI_REGISTRY}/${CI_PROJECT_PATH}/example_1"
-        DOCKER_TAG: "0.0.1"
-      - DOCKER_REPO: "${CI_REGISTRY}/${CI_PROJECT_PATH}/example_2"
-        DOCKER_TAG: "0.0.1"
-  script:
-    - |
-      {
-        echo "release_docker_repository=${DOCKER_REPO}"
-        echo "release_docker_tag=${DOCKER_TAG}"
-      } > release_after_script.env
 
 
 

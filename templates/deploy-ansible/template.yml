@@ -1,0 +1,110 @@
+
+
+spec:
+  inputs:
+    project-dir:
+      description: "Ansible project root directory"
+      type: string
+      default: "."
+    prod-playbook-file:
+      description: "The playbook filename"
+      type: string
+      default: "playbook.yml"
+    default-inventory:
+      description: The default inventory, if used
+      type: string
+      default: 'inventory.json'
+    default-extra-args:
+      description: Optional default args to add to the ansible-playbook command line
+      type: string
+      default: '-i structure.yaml'
+    requirements-file:
+      description: The file used to install roles and collections with `ansible-galaxy install`
+      type: string
+      default: requirements.yml
+    galaxy-extra-args:
+      description: '`ansible-galaxy install` command [extra options](https://docs.ansible.com/ansible/latest/cli/ansible-galaxy.html#role-install)'
+      type: string
+      default: ''
+    host-key-checking:
+      description: Enable or disable the SSH host key checking
+      type: boolean
+      default: false
+    lint-disabled:
+      description: Disable Ansible Lint
+      type: boolean
+      default: false
+    prod-deploy-strategy:
+      description: Defines the deployment to production strategy.
+      options:
+        - manual
+        - auto
+      default: auto
+
+
+---
+
+include:
+  - component: $CI_SERVER_FQDN/to-be-continuous/ansible/gitlab-ci-ansible@7.0.2
+    inputs:
+      project-dir: $[[ inputs.project-dir ]]
+      prod-playbook-file: $[[ inputs.prod-playbook-file ]]
+
+      default-inventory: $[[ inputs.default-inventory ]]
+      default-extra-args: $[[ inputs.default-extra-args ]]
+      requirements-file: $[[ inputs.requirements-file ]]
+      galaxy-extra-args: $[[ inputs.galaxy-extra-args ]]
+      
+      host-key-checking: $[[ inputs.host-key-checking ]]
+
+      lint-disabled: $[[ inputs.lint-disabled ]]
+
+      prod-deploy-strategy: $[[ inputs.prod-deploy-strategy]]
+
+variables:
+  COLLECTION_PATH: /root/.ssh/id_ed25519
+  DEFAULT_CA_CERTS: "$CI_SERVER_TLS_CA_FILE"
+
+.ansible-base:
+  services:
+    - name: "$TBC_TRACKING_IMAGE"
+      command: ["--service", "ansible", "7.0.2"]
+  variables:
+    ANSIBLE_HOME: $CI_PROJECT_DIR/$ANSIBLE_PROJECT_DIR/.ansible
+  cache:
+    key: "$CI_COMMIT_REF_SLUG-ansible"
+    when: always
+    paths:
+      - $ANSIBLE_PROJECT_DIR/.ansible
+  before_script:
+    - !reference [.ansible-scripts]
+    - install_ca_certs "${CUSTOM_CA_CERTS:-$DEFAULT_CA_CERTS}"
+    - cd $ANSIBLE_PROJECT_DIR
+  image:
+    name: "$ANSIBLE_IMAGE"
+    entrypoint: [""]
+  tag:
+    - "ansible"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

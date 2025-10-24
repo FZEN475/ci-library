@@ -1,0 +1,8 @@
+
+
+include:
+  - local: 'templates/deploy-ansible/template.yml'
+    ansible-dir: "./test_examples/ansible"
+
+
+

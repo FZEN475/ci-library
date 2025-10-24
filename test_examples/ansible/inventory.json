@@ -1,0 +1,23 @@
+{
+  "control": {
+    "hosts": {
+      "control02": null,
+      "control03": null
+    }
+  },
+  "control_main": {
+    "hosts": {
+      "control01": null
+    }
+  },
+  "storage": {
+    "hosts": {
+      "storage01": null
+    }
+  },
+  "workflow": {
+    "hosts": {
+      "workflow01": null
+    }
+  }
+}
