@@ -88,6 +88,31 @@ variables:
     - "ansible"
 
 
+.ansible-deploy:
+  extends: .ansible-base
+  stage: deploy
+  variables:
+    ENV_APP_SUFFIX: "-$CI_ENVIRONMENT_SLUG"
+  before_script:
+    - !reference [.ansible-scripts]
+    - install_ca_certs "${CUSTOM_CA_CERTS:-$DEFAULT_CA_CERTS}"
+    - cd $ANSIBLE_PROJECT_DIR
+    - assert_defined "${ENV_INVENTORY:-${ANSIBLE_DEFAULT_INVENTORY}}" 'Missing required Ansible inventory'
+    - assert_defined "${ENV_PLAYBOOK_FILE}" 'Missing required Ansible playbook'
+    - ls -all /root/.ssh/
+  script:
+    - !reference [ .ansible-commands, deploy ]
+  after_script:
+    - !reference [.ansible-scripts]
+    - cleanup_secrets
+  artifacts:
+    name: "$ENV_TYPE env url for $CI_PROJECT_NAME on $CI_COMMIT_REF_SLUG"
+    paths:
+      - "$ANSIBLE_PROJECT_DIR/environment_url.txt"
+    reports:
+      dotenv: "$ANSIBLE_PROJECT_DIR/ansible.env"
+  environment:
+    url: "$environment_url" # can be either static or dynamic
 
 
 
