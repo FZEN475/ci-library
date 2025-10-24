@@ -3,7 +3,7 @@
 include:
   - local: 'templates/deploy-ansible/template.yml'
     inputs:
-      ansible-dir: './test_examples/ansible/'
+      project-dir: './test_examples/ansible/'
       default-inventory: 'inventory.json'
       default-extra-args: '-i structure.yaml'
       
