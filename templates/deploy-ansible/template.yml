@@ -41,10 +41,6 @@ spec:
         - auto
       default: auto
 ---
-include:
-  - local: 'templates/-1-common-rules/template.yml'
-
----
 
 include:
 
@@ -64,7 +60,9 @@ include:
 
       prod-deploy-strategy: $[[ inputs.prod-deploy-strategy]]
     rules:
-      - !reference [ .protected-branch-commit, rules ]
+      - if: '$CI_DEFAULT_BRANCH == $CI_COMMIT_BRANCH'
+      - when: never
+      
 
 variables:
 #  ANSIBLE_PRIVATE_KEY: /root/.ssh/id_ed25519
