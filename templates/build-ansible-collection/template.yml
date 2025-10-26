@@ -21,6 +21,10 @@ stages:
   - build
   - push
 
+default:
+  tags:
+    - "docker-builder"
+
 build-ansible-galaxy-library:
   stage: build
   image: docker.io/cytopia/ansible:latest-tools
